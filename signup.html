@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --ink:#1f2328; --muted:#5d6168; --faint:#7e8389; --label:#3a3e44;
+    --accent:#2b2f36; --accent-2:#3d424a; --accent-link:#4a4f57; --gold:#9a9ea6;
+    --line-focus:#4a4f57; --btn-ink:#23272e;
+    --bg-a:#f4f5f6; --bg-b:#e7e9eb; --bg-c:#dcdee1; --bg-d:#d2d5d9; --blob-1:rgba(90,95,103,.14); --blob-2:rgba(154,158,166,.12);
+    --card-border:#e8eae6; --card-divider:#f1f2ef; --field-bg:#f7f8f6; --field-border:#ebede9;
+    --band-bg:#fafbfa; --radius:22px; --seg-track:#dce4e0;
+  }
+
+  html, body { height:100%; }
+
+  body {
+    font-family:'Geist', sans-serif; -webkit-font-smoothing:antialiased; color:var(--ink);
+    display:grid; justify-items:center; align-content:safe center; padding:24px; position:relative; overflow-x:hidden; min-height:100%;
+    background:linear-gradient(165deg, var(--bg-a) 0%, var(--bg-b) 40%, var(--bg-c) 75%, var(--bg-d) 100%); transition:background .5s ease;
+  }
+
+  .amb { position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .amb span { position:absolute; border-radius:50%; filter:blur(80px); animation:drift 22s ease-in-out infinite; transition:background .5s ease; }
+  .amb .o1 { width:380px; height:380px; background:var(--blob-1); top:-110px; right:-90px; }
+  .amb .o2 { width:340px; height:340px; background:var(--blob-2); bottom:-130px; left:-100px; animation-delay:-8s; }
+  @keyframes drift { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-20px,24px) scale(1.06);} }
+
+  .stage { position:relative; z-index:2; width:100%; max-width:440px; }
+
+  .card { background:#fff; border:1px solid var(--card-border); border-radius:var(--radius); overflow:hidden;
+          box-shadow:0 24px 50px -28px rgba(20,30,30,.26), 0 2px 8px -4px rgba(20,30,30,.06); }
+
+  .reveal { opacity:0; transform:translateY(12px); animation:rise .65s cubic-bezier(.16,1,.3,1) forwards; }
+  .d1{animation-delay:.05s}.d2{animation-delay:.13s}.d3{animation-delay:.21s}
+  .d4{animation-delay:.29s}.d5{animation-delay:.37s}.d6{animation-delay:.45s}.d7{animation-delay:.53s}
+  @keyframes rise { to { opacity:1; transform:translateY(0); } }
+
+  /* ── Logo band + segmented progress (C signature) ── */
+  .topband { background:var(--band-bg); border-bottom:1px solid var(--card-divider); padding:18px 32px 0; }
+  .lock-row { display:flex; justify-content:center; align-items:center; min-height:40px; padding-bottom:14px; }
+  .lock { display:inline-flex; align-items:center; gap:10px; }
+  .lock .dot { width:28px; height:28px; border-radius:8px; flex:none; display:grid; place-items:center;
+               font-family:'Fraunces',serif; font-size:14px; color:#fff;
+               background:linear-gradient(160deg,var(--accent-2),var(--accent));
+               box-shadow:0 7px 16px -8px var(--accent); transition:background .5s; }
+  .lock .name { font-family:'Fraunces',serif; font-size:17px; font-weight:500; letter-spacing:-.01em; color:var(--ink); }
+  .lock img { display:block; height:30px; max-width:190px; width:auto; object-fit:contain; }
+  .brand-skeleton { width:120px; height:30px; border-radius:8px;
+    background:linear-gradient(100deg, #eceeec 30%, #f6f7f5 50%, #eceeec 70%);
+    background-size:200% 100%; animation:shimmer 1.3s ease-in-out infinite; }
+  @keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+  .segs { display:none; gap:6px; padding-bottom:14px; }
+  .segs span { flex:1; height:3px; border-radius:3px; background:var(--seg-track); transition:background .35s ease; }
+  .segs span.on { background:var(--accent); }
+
+  .head { padding:22px 32px 4px; }
+  .head h1 { font-family:'Fraunces',serif; font-weight:400; font-size:23px; line-height:1.1; letter-spacing:-0.015em; }
+  .head p { margin-top:7px; font-size:13.5px; color:var(--muted); line-height:1.45; }
+
+  .body { padding:18px 32px 28px; }
+
+  /* ── Location bar (C6: slim white bar, Change as a tinted pill) ── */
+  .addr-chip { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--field-border);
+               padding:7px 7px 7px 13px; border-radius:11px; margin-bottom:16px; max-width:100%; }
+  .addr-chip svg { flex:none; }
+  .addr-chip .at { flex:1; min-width:0; font-size:12.5px; color:var(--label); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .addr-chip .change { flex:none; font-size:11px; font-weight:600; color:var(--accent); background:color-mix(in srgb,var(--accent) 9%,#fff);
+                       border:none; padding:6px 11px; border-radius:980px; cursor:pointer; font-family:inherit; transition:background .2s; }
+  .addr-chip .change:hover { background:color-mix(in srgb,var(--accent) 16%,#fff); }
+  .countline { font-size:12.5px; color:var(--faint); margin:-8px 0 16px; }
+
+  /* ── Location list (V2: flat joined list, radio marker, copy on selected) ── */
+  .loc-list { background:#fff; border:1px solid var(--field-border); border-radius:13px; overflow:hidden; margin-bottom:4px; }
+  .opt { display:flex; align-items:center; gap:12px; padding:13px 15px; cursor:pointer; background:#fff;
+         border-left:3px solid transparent; transition:background .2s, border-color .2s; }
+  /* hairline divider between rows, inset past the radio */
+  .opt + .opt { border-top:1px solid var(--card-divider); }
+  .opt:hover { background:#fafbfa; }
+  .opt.on { border-left:3px solid var(--accent); background:color-mix(in srgb,var(--accent) 4%,#fff); }
+  /* Radio: thin ring by default, thick accent ring when selected. */
+  .opt .rad { width:18px; height:18px; border-radius:50%; border:1.5px solid #cdd2cc; background:#fff; flex:none; display:grid; place-items:center; transition:border-color .2s, background .2s; }
+  .opt .rad svg { width:12px; height:12px; opacity:0; transition:opacity .2s; }
+  .opt.on .rad { border:none; background:var(--accent); }
+  .opt.on .rad svg { opacity:1; }
+  .opt .body-t { flex:1; min-width:0; }
+  .opt .eyebrow { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); }
+  .opt.on .eyebrow { color:var(--accent); }
+  .opt .t { font-size:14px; font-weight:600; color:var(--ink); margin-top:2px; line-height:1.2; letter-spacing:-.01em; }
+  .opt .d { font-size:11.5px; color:var(--faint); margin-top:1px; line-height:1.4; }
+  /* Copy: a quiet accent ghost icon, shown only on the selected row. */
+  .opt .loc-copy { flex:none; border:none; background:none; cursor:pointer; color:var(--accent); display:none; padding:5px; border-radius:7px; transition:background .2s; }
+  .opt.on .loc-copy { display:flex; }
+  .opt .loc-copy:hover { background:color-mix(in srgb,var(--accent) 10%,#fff); }
+
+
+  /* ── Plan list (flat joined list, matching the location selector) ── */
+  /* One bordered container; rows divided by hairlines. Selected row gets a left
+     accent bar + faint wash, and its detail expands below, still inside the list. */
+  .plans { background:#fff; border:1px solid var(--field-border); border-radius:13px; overflow:hidden; }
+  /* Scrollable: short window (~3 rows). Soft top fade only — the bottom fade was
+     cutting across a row (the "break"); the dots rail already signals more below. */
+  .plans.scrollable { max-height:190px; overflow-y:auto; min-height:0;
+    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14px,#000 100%);
+            mask-image:linear-gradient(180deg,transparent 0,#000 14px,#000 100%);
+    scrollbar-width:none; }
+  .plans.scrollable::-webkit-scrollbar { width:0; height:0; }
+
+  /* Scroll wrap holds the list + the dots rail on its right. */
+  .scroll-wrap { position:relative; padding-right:16px; }
+  .scroll-dots { position:absolute; right:0; top:0; bottom:0; display:flex; flex-direction:column;
+                 align-items:center; justify-content:center; gap:6px; pointer-events:none; }
+  .scroll-dots span { width:5px; height:5px; border-radius:980px; background:color-mix(in srgb,var(--accent) 22%,transparent);
+                      transition:height .25s ease, background .25s ease; }
+  .scroll-dots span.on { height:16px; background:var(--accent); }
+
+  .prow { background:#fff; cursor:pointer; border-left:3px solid transparent; transition:background .2s, border-color .2s; }
+  .prow + .prow { border-top:1px solid var(--card-divider); }
+  .prow:hover { background:#fafbfa; }
+  /* Selected: left accent bar; the faint wash now reads as a header banner. */
+  .prow.on { border-left:3px solid var(--accent); background:#fff; }
+  .prow-head { display:flex; align-items:flex-start; gap:12px; padding:13px 15px; }
+  .prow.on .prow-head { background:color-mix(in srgb,var(--accent) 6%,#fff); }
+  /* Marker: radio ring by default, filled check-circle (C1) when selected. */
+  .prow .rdot { width:18px; height:18px; border-radius:50%; border:1.5px solid #cdd2cc; background:#fff; flex:none; margin-top:1px; display:grid; place-items:center; transition:border-color .2s, background .2s; }
+  .prow .rdot svg { width:12px; height:12px; opacity:0; transition:opacity .2s; }
+  .prow.on .rdot { border:none; background:var(--accent); }
+  .prow.on .rdot svg { opacity:1; }
+  .prow-mid { flex:1; min-width:0; }
+  .prow-nm { font-size:14px; font-weight:600; letter-spacing:-.01em; color:var(--ink); display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .prow.on .prow-nm { color:color-mix(in srgb,var(--accent) 78%,#000); }
+  .prow-memo { font-size:11.5px; color:var(--faint); margin-top:3px; line-height:1.4; }
+  .prow.on .prow-memo { color:var(--muted); }
+  .prow-price { text-align:right; flex:none; }
+  .prow-price b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .prow.on .prow-price b { color:color-mix(in srgb,var(--accent) 78%,#000); }
+  .prow-price span { font-size:9.5px; color:var(--faint); display:block; margin-top:1px; }
+  .prow.on .prow-price span { color:var(--accent); }
+  .feat-pop { font-size:8px; font-weight:600; letter-spacing:.08em; color:#fff; background:var(--accent); padding:2px 7px; border-radius:980px; }
+  .tag { font-size:8px; font-weight:600; letter-spacing:.06em; padding:2px 7px; border-radius:980px; display:inline-flex; align-items:center; gap:3px; }
+  .tag-all { color:var(--muted); background:#eceeec; }
+  .tag-loc { color:#854f0b; background:#faeeda; }
+  .tag-multi { color:#0c447c; background:#e6f1fb; }
+  .tag[data-tip]{ cursor:default; }
+  #tagtip-bubble{ position:fixed; z-index:9999; visibility:hidden; opacity:0; transition:opacity .12s ease;
+    width:max-content; max-width:230px; background:#fff; color:var(--ink); border:1px solid var(--card-border); border-radius:10px;
+    padding:8px 11px; font-size:11.5px; font-weight:400; letter-spacing:0; line-height:1.45; text-align:left; white-space:normal;
+    box-shadow:0 10px 28px -10px rgba(20,30,30,.32), 0 2px 8px -4px rgba(20,30,30,.10); pointer-events:none; }
+  #tagtip-bubble.on{ visibility:visible; opacity:1; }
+
+  /* Pinned featured plan sits above the scroll list. */
+  .pinned { margin-bottom:14px; }
+  /* The pinned card holds only the featured plan. Keep the rounded clip (so the
+     left accent bar reads cleanly like the original); the small bottom padding
+     keeps the expanded body from butting against the rounded corner. */
+  .pinned .plans { padding-bottom:2px; }
+  .more-label { display:flex; align-items:center; justify-content:space-between; font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:0 0 8px 2px; }
+  .more-label .more-count { letter-spacing:.04em; }
+
+  /* Allowance as an inline sub-line under the plan name (location-list style). */
+  .allow-line { font-size:11.5px; color:var(--faint); margin-top:4px; display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .prow.on .allow-line { color:var(--muted); }
+  /* E1: soft accent-tint fill with accent icon — subtle, on-brand. */
+  .allow-line .auto-ic { width:22px; height:22px; border-radius:50%; display:inline-grid; place-items:center; flex:none;
+                         color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,#fff); }
+  .allow-line .auto-ic svg { width:13px; height:13px; }
+
+  /* Expanded detail under the selected row, still inside the list. */
+  .prow-body { padding:12px 16px 15px 45px; background:transparent; animation:expand .28s ease; }
+  @keyframes expand { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+  .feats { list-style:none; margin:0; display:grid; gap:8px; }
+  .feats li { display:flex; gap:9px; align-items:flex-start; font-size:12.5px; color:var(--muted); line-height:1.35; }
+  .feats li svg { flex:none; margin-top:1px; }
+  .storage-line { margin-top:9px; display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--muted); line-height:1.35; }
+  .storage-line svg { flex:none; color:var(--faint); }
+  .finefees { margin-top:11px; padding-top:10px; border-top:1px solid color-mix(in srgb,var(--accent) 18%,transparent); font-size:11px; color:var(--faint); line-height:1.55; }
+  .finefees b { font-weight:600; color:var(--muted); }
+
+  /* ── Contact summary (Design A: plan name + price, Change pill) ── */
+  .summary { background:var(--band-bg); border:1px solid var(--card-divider); border-radius:14px; padding:14px 15px; margin-bottom:20px; }
+  .summary .s1 { display:flex; align-items:center; gap:10px; }
+  .summary .s-mid { flex:1; min-width:0; }
+  .summary .s-lab { font-size:9px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); }
+  .summary .s-line { font-size:14px; font-weight:600; color:var(--ink); margin-top:2px; letter-spacing:-.01em; }
+  .summary .s-line .s-pr-unit { font-size:11px; color:var(--faint); font-weight:400; }
+  /* Change pill — matches the location bar's Change control. */
+  .summary .s-change { flex:none; font-size:11px; font-weight:600; color:var(--accent); background:color-mix(in srgb,var(--accent) 9%,#fff);
+                       border:none; padding:6px 12px; border-radius:980px; cursor:pointer; font-family:inherit; transition:background .2s; }
+  .summary .s-change:hover { background:color-mix(in srgb,var(--accent) 16%,#fff); }
+  /* Address row sits below a divider; click anywhere to copy. */
+  .vo-addr { margin-top:11px; padding-top:11px; border-top:1px solid var(--card-divider); display:flex; align-items:center; gap:9px; cursor:pointer; }
+  .vo-ic { flex:none; color:var(--accent); display:flex; }
+  .vo-tx { flex:1; min-width:0; }
+  .vo-val { display:block; font-size:11.5px; color:var(--muted); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .vo-copy { flex:none; color:var(--accent); display:flex; align-items:center; padding:2px; }
+  /* One-time setup fee — info pill under the summary box (S3). */
+  .setup-pill { display:inline-flex; align-items:center; gap:6px; margin:-11px 0 20px; padding:5px 12px; border-radius:980px;
+                background:color-mix(in srgb,var(--accent) 7%,#fff); border:1px solid color-mix(in srgb,var(--accent) 14%,transparent); }
+  .setup-pill svg { flex:none; color:var(--accent); }
+  .setup-pill span { font-size:11px; color:color-mix(in srgb,var(--accent) 72%,#000); line-height:1.3; }
+  .setup-pill b { font-weight:600; }
+
+  .fg { margin-bottom:16px; }
+  .frow { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .lab { display:block; margin-bottom:8px; }
+  label { font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--label); }
+  .field { width:100%; background:var(--field-bg); border:1px solid var(--field-border); border-radius:11px;
+           padding:12px 14px; font-size:15px; font-family:inherit; outline:none; color:var(--ink);
+           transition:border-color .2s, box-shadow .2s; }
+  .field::placeholder { color:#9aa0a4; }
+  .field:focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
+
+  /* Referral select — matches .field, with a custom data-URI chevron (a native
+     select can't hold inline SVG). appearance:none mirrors .phone-cc select. */
+  .selfield { width:100%; -webkit-appearance:none; appearance:none; background:var(--field-bg);
+    border:1px solid var(--field-border); border-radius:11px; padding:12px 36px 12px 14px;
+    font-size:15px; font-family:inherit; outline:none; color:var(--ink); cursor:pointer;
+    transition:border-color .2s, box-shadow .2s;
+    background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239aa0a4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center; }
+  .selfield:focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
+  .selfield.placeholder { color:#9aa0a4; }
+
+  /* Compact: tighter spacing for the Create-your-account step only. */
+  .compact .fg { margin-bottom:12px; }
+  .compact .lab { margin-bottom:6px; }
+  .compact .field { padding:10px 14px; }
+  .compact .selfield { padding:10px 36px 10px 14px; }
+  .compact .phone-wrap input,
+  .compact .phone-wrap .phone-cc select { padding-top:10px; padding-bottom:10px; }
+  .compact .agree { margin-top:14px; }
+  .compact #pay { margin-top:14px !important; }
+
+  /* Phone with country dropdown */
+  .phone-wrap { display:flex; align-items:stretch; background:var(--field-bg); border:1px solid var(--field-border); border-radius:11px; overflow:hidden; transition:border-color .2s, box-shadow .2s; }
+  .phone-wrap.focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 14%,transparent); }
+  .phone-cc { position:relative; display:flex; align-items:center; border-right:1px solid var(--field-border); background:#fff; }
+  .phone-cc select { -webkit-appearance:none; appearance:none; border:none; outline:none; background:transparent;
+    font-family:inherit; font-size:14px; color:var(--label); cursor:pointer; padding:0 26px 0 12px; height:100%; }
+  .phone-cc .chev { position:absolute; right:8px; pointer-events:none; color:var(--faint); display:flex; }
+  .phone-wrap input { flex:1; min-width:0; background:transparent; border:none; outline:none; padding:12px 14px; font-size:15px; font-family:inherit; color:var(--ink); }
+  .phone-wrap input::placeholder { color:#9aa0a4; }
+
+  /* Promo live-check status */
+  .promo-field-wrap { position:relative; }
+  .promo-field-wrap .field { padding-right:38px; }
+  .promo-status { position:absolute; right:12px; top:50%; transform:translateY(-50%); display:flex; align-items:center; }
+  .promo-spin { width:15px; height:15px; border:2px solid color-mix(in srgb,var(--accent) 30%,transparent); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+  .promo-msg { font-size:11px; margin-top:6px; line-height:1.4; display:flex; align-items:center; gap:5px; }
+  .promo-msg.ok { color:#1d6b4f; }
+  .promo-msg.bad { color:#a32d2d; }
+  .promo-field-wrap .field.ok { border-color:#1d6b4f; }
+  .promo-field-wrap .field.bad { border-color:#a32d2d; }
+
+  /* Promo toggle + field */
+  .promo-toggle { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:500; color:var(--accent); cursor:pointer; user-select:none; }
+  .promo-toggle svg { width:15px; height:15px; }
+  .promo-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .promo-remove { font-size:11px; color:var(--faint); cursor:pointer; font-weight:400; letter-spacing:0; text-transform:none; }
+  .promo-remove:hover { color:var(--muted); }
+  .promo-hint { font-size:11px; color:var(--faint); margin-top:6px; line-height:1.4; }
+
+  /* Agree-to-policies checkbox */
+  .agree { display:flex; align-items:flex-start; gap:10px; margin-top:18px; cursor:pointer; user-select:none; }
+  .agree .box { width:19px; height:19px; border:1.5px solid #cdd2cc; border-radius:6px; flex:none; margin-top:1px; display:grid; place-items:center; background:#fff; transition:background .2s, border-color .2s; }
+  .agree .box svg { width:12px; height:12px; opacity:0; transition:opacity .15s; }
+  .agree.on .box { background:var(--accent); border-color:var(--accent); }
+  .agree.on .box svg { opacity:1; }
+  .agree .txt { font-size:12px; color:var(--muted); line-height:1.5; }
+  .agree .txt a { color:var(--accent-link); text-decoration:underline; }
+
+  .btn { width:100%; height:54px; border:none; border-radius:40px; margin-top:20px; cursor:pointer;
+         font-family:inherit; font-size:14px; font-weight:500; letter-spacing:.04em; color:#fff;
+         background:var(--btn-ink);
+         display:inline-flex; align-items:center; justify-content:space-between; padding:0 8px 0 24px;
+         box-shadow:0 8px 20px -12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.10);
+         transition:transform .14s, filter .25s; }
+  .btn:hover { filter:brightness(1.12); }
+  .btn:active { transform:scale(.985); }
+  .btn:disabled { opacity:.55; cursor:not-allowed; }
+  .btn .chip { width:38px; height:38px; border-radius:50%; background:var(--accent);
+               display:grid; place-items:center; transition:background .5s, transform .25s; flex:none; }
+  .btn:hover .chip { transform:translateX(3px); }
+  .btn .chip svg { width:17px; height:17px; }
+  .btn .spinner { width:17px; height:17px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff;
+                  border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .note { font-size:12px; color:var(--faint); text-align:center; margin-top:15px; display:flex; align-items:center; justify-content:center; gap:6px; line-height:1.5; }
+  /* E1: the shield-check icon gently pulses (scale + opacity). Transform/opacity
+     run on the compositor, so it stays smooth even while JS is busy on pay. */
+  .sp-shield { display:inline-flex; color:var(--accent); transform-origin:center; will-change:transform;
+               animation:sp-pulse 2.4s ease-in-out infinite; }
+  @keyframes sp-pulse { 0%,100%{transform:scale(.88); opacity:.65} 50%{transform:scale(1); opacity:1} }
+  @media (prefers-reduced-motion: reduce) {
+    .sp-shield { animation:none; transform:none; opacity:1; }
+  }
+  /* Trust footnote under the Continue button. */
+  .trustnote { font-size:9.5px; color:var(--faint); text-align:center; margin-top:9px; line-height:1.4; }
+
+  .center { padding:42px 32px 38px; text-align:center; }
+  .ico-big { width:64px; height:64px; border-radius:50%; display:grid; place-items:center; margin:0 auto 22px; }
+
+  .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(80px);
+           background:var(--ink); color:#fff; padding:13px 22px; border-radius:40px; font-size:13.5px;
+           box-shadow:0 14px 40px -12px rgba(0,0,0,.5); z-index:50; opacity:0;
+           transition:transform .35s cubic-bezier(.16,1,.3,1), opacity .35s; max-width:90vw; }
+  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+  .toast.err { background:#7a2230; }
+  .toast.ok  { background:#1d6b4f; }
+
+  @media (max-width:440px) {
+    .topband { padding:16px 24px 0; } .head { padding:18px 24px 4px; } .body { padding:16px 24px 24px; }
+    .head h1 { font-size:22px; } .frow { grid-template-columns:1fr; gap:0; } .prow-memo { display:none; }
+    /* iOS Safari zooms the page when focusing inputs under 16px — keep them at 16px. */
+    .field, .phone-wrap input, .phone-cc select { font-size:16px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="amb"><span class="o1"></span><span class="o2"></span></div>
+
+  <div class="stage">
+    <div class="card reveal d1" id="card">
+      <div class="topband">
+        <div class="lock-row">
+          <span class="brand-skeleton" id="brand-skeleton"></span>
+          <span class="lock" id="lock" style="display:none">
+            <span class="dot" id="logo-dot"></span>
+            <span class="name" id="logo-text"></span>
+            <img id="logo-img" src="" alt="" style="display:none">
+          </span>
+        </div>
+        <div class="segs" id="segs"><span data-s="1"></span><span data-s="2"></span><span data-s="3"></span></div>
+      </div>
+      <div id="main"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+const SB_URL  = 'https://catpufkbjmcjmtuisdok.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhdHB1Zmtiam1jam10dWlzZG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMjQ4MjUsImV4cCI6MjA4NzgwMDgyNX0.ZU1AgV1C0Lph8WQPXwt4ZYKymAIYtwEOnovtwhcNwS4';
+
+const S = { companyId:'', cfg:{}, plans:[], locations:[], loc:null, plan:null, stripeKey:null, hasLocStep:false, promoValid:false };
+
+const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+const LOCATE=(c,s)=>{const n=s||15;return '<svg viewBox="0 0 24 24" width="'+n+'" height="'+n+'" fill="'+c+'" stroke="'+c+'" stroke-width="1.5" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>';};
+/* Auto-feature glyphs (stroke, inherit currentColor): scan = document scan, ship = paper plane. */
+const ICON_SCAN='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 0 1 1-1h2"/><path d="M17 4h2a1 1 0 0 1 1 1v2"/><path d="M20 17v2a1 1 0 0 1-1 1h-2"/><path d="M7 20H5a1 1 0 0 1-1-1v-2"/><line x1="4" y1="12" x2="20" y2="12"/></svg>';
+const ICON_SHIP='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v5"/><path d="M3 7.5l7.6 5.1a2 2 0 0 0 2.2 0L18 9.5"/><path d="M3 12v5a2 2 0 0 0 2 2h7"/><path d="M16 19h6"/><path d="M19 16l3 3-3 3"/></svg>';
+const TICK=c=>'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="'+c+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+const ICON_INFO='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.6" fill="currentColor"/></svg>';
+const ICON_CLOCK='<svg viewBox="0 0 24 24" width="12.5" height="12.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>';
+const COPY=c=>'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const ICON_PLUS='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+const CHEV='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+const XMARK='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+/* Curated dial codes. min/max = national-number digit length (approximate, sane bounds).
+   Canada default. Codes with shared dial (+1) are fine — we store full E.164. */
+const COUNTRIES=[
+  {c:'CA', f:'\u{1F1E8}\u{1F1E6}', d:'1',  min:10,max:10, name:'Canada'},
+  {c:'US', f:'\u{1F1FA}\u{1F1F8}', d:'1',  min:10,max:10, name:'United States'},
+  {c:'GB', f:'\u{1F1EC}\u{1F1E7}', d:'44', min:9, max:10, name:'United Kingdom'},
+  {c:'AU', f:'\u{1F1E6}\u{1F1FA}', d:'61', min:9, max:9,  name:'Australia'},
+  {c:'IN', f:'\u{1F1EE}\u{1F1F3}', d:'91', min:10,max:10, name:'India'},
+  {c:'DE', f:'\u{1F1E9}\u{1F1EA}', d:'49', min:10,max:11, name:'Germany'},
+  {c:'FR', f:'\u{1F1EB}\u{1F1F7}', d:'33', min:9, max:9,  name:'France'},
+  {c:'AE', f:'\u{1F1E6}\u{1F1EA}', d:'971',min:8, max:9,  name:'UAE'},
+  {c:'CN', f:'\u{1F1E8}\u{1F1F3}', d:'86', min:11,max:11, name:'China'},
+  {c:'NG', f:'\u{1F1F3}\u{1F1EC}', d:'234',min:10,max:10, name:'Nigeria'},
+  {c:'MX', f:'\u{1F1F2}\u{1F1FD}', d:'52', min:10,max:10, name:'Mexico'},
+  {c:'BR', f:'\u{1F1E7}\u{1F1F7}', d:'55', min:10,max:11, name:'Brazil'}
+];
+function _country(code){ return COUNTRIES.find(x=>x.c===code)||COUNTRIES[0]; }
+const SHIELD='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11.5 14.5 15.5 9.5"/></svg>';
+
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => el.className = 'toast', 3500);
+}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fullAddr(l){return [l.address,l.city,l.province,l.postal_code].filter(Boolean).join(', ')||l.location_id;}
+function shortAddr(l){return [l.address,l.city].filter(Boolean).join(', ')||l.location_id;}
+/* "City, ON A1A 1A1" — city joined by comma, province+postal by a space. */
+function cityLine(l){
+  const cp=[l.province,l.postal_code].filter(Boolean).join(' ');
+  return [l.city,cp].filter(Boolean).join(', ');
+}
+function money(n){const v=Number(n);if(!isFinite(v)||v<=0)return null;return '$'+(v%1===0?v.toFixed(0):v.toFixed(2));}
+
+/* Segmented progress under the logo band. n = active step (0 hides them).
+   Collapses to a 2-segment flow when there's no location step. */
+function setSteps(n){
+  const wrap=document.getElementById('segs'); if(!wrap) return;
+  if(!n){ wrap.style.display='none'; return; }
+  wrap.style.display='flex';
+  const total=S.hasLocStep?3:2;
+  wrap.querySelectorAll('span').forEach((el,i)=>{
+    el.style.display=(i<total)?'':'none';
+    el.className=(i<n)?'on':'';
+  });
+}
+
+function applyAccentColor(hex) {
+  try {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    const root = document.documentElement.style;
+    const clamp = (v) => Math.max(0, Math.min(255, Math.round(v)));
+    const mix = (v, t, a) => clamp(v + (t - v) * a);
+    const rgb = (rr,gg,bb) => 'rgb('+rr+','+gg+','+bb+')';
+    const rgba = (rr,gg,bb,a) => 'rgba('+rr+','+gg+','+bb+','+a+')';
+
+    root.setProperty('--accent', hex);
+    root.setProperty('--accent-2', rgb(mix(r,255,.16), mix(g,255,.16), mix(b,255,.16)));
+    root.setProperty('--accent-link', rgb(mix(r,30,.18), mix(g,40,.18), mix(b,35,.18)));
+    root.setProperty('--label', rgb(mix(r,30,.55), mix(g,40,.55), mix(b,35,.55)));
+    root.setProperty('--gold', rgb(mix(r,210,.5), mix(g,180,.5), mix(b,120,.5)));
+    root.setProperty('--line-focus', hex);
+    root.setProperty('--bg-a', rgb(mix(r,255,.93), mix(g,255,.93), mix(b,255,.93)));
+    root.setProperty('--bg-b', rgb(mix(r,255,.85), mix(g,255,.85), mix(b,255,.85)));
+    root.setProperty('--bg-c', rgb(mix(r,255,.76), mix(g,255,.76), mix(b,255,.76)));
+    root.setProperty('--bg-d', rgb(mix(r,255,.68), mix(g,255,.68), mix(b,255,.68)));
+    root.setProperty('--seg-track', rgb(mix(r,255,.80), mix(g,255,.80), mix(b,255,.80)));
+    root.setProperty('--blob-1', rgba(r, g, b, .16));
+    root.setProperty('--blob-2', rgba(mix(r,210,.5), mix(g,180,.5), mix(b,120,.5), .14));
+  } catch(e) {}
+}
+
+function deriveFeatures(p){
+  const f=[];
+  if(p.auto_feature==='ship') f.push('Worldwide mail forwarding');
+  if(p.auto_feature==='scan') f.push('Auto mail scanning');
+  f.push('Same-day notifications');
+  return f;
+}
+function featuresOf(p){ return (Array.isArray(p.features)&&p.features.length)?p.features:deriveFeatures(p); }
+function planLocIds(p){ return (p.locations||'').split(',').map(s=>s.trim()).filter(Boolean); }
+function _planPriceNum(p){ const n=parseFloat(String(p.price_display||'').replace(/[^0-9.]/g,'')); return isFinite(n)?n:Infinity; }
+function _per(p){ return p.billing_cycle==='yearly'?'yr':'mo'; }
+function _perWord(p){ return p.billing_cycle==='yearly'?'per year':'per month'; }
+function _recipTag(p){ return p.max_recipients?(p.max_recipients+' recipient'+(p.max_recipients>1?'s':'')):''; }
+function _recipTagShort(p){ return p.max_recipients?(p.max_recipients+' recip.'):''; }
+function visiblePlans(){
+  let list=S.plans.filter(p=>p.archived!==true);
+  if(S.loc){ list=list.filter(p=>{ const ids=planLocIds(p); return ids.length===0||ids.includes(S.loc.location_id); }); }
+  else if(S.locations.length>0){ list=[]; }
+  list=list.slice().sort((a,b)=>{ const fa=a.is_featured?0:1, fb=b.is_featured?0:1; if(fa!==fb) return fa-fb; return _planPriceNum(a)-_planPriceNum(b); });
+  return list;
+}
+
+async function boot(){
+  const cached=localStorage.getItem('app_accent_color');
+  if(cached) applyAccentColor(cached);
+  const params=new URLSearchParams(location.search);
+  const status=params.get('status');
+  const companyParam=params.get('company')||'';
+
+  let data={};
+  try{
+    const url=SB_URL+'/functions/v1/get-public-config'+(companyParam?'?company='+encodeURIComponent(companyParam):'');
+    const res=await fetch(url);
+    data=await res.json();
+  }catch(e){ data={}; }
+
+  const c=data.config||{};
+  S.cfg=c;
+  S.companyId=data.company_id||'';
+  S.plans=(data.plans||[]).filter(p=>p.archived!==true);
+  S.locations=(data.locations||[]).filter(l=>l.active!==false);
+  S.stripeKey=c.stripe_publishable_key||null;
+  S.hasLocStep=S.locations.length>1;
+
+  if(c.email_accent_color){ applyAccentColor(c.email_accent_color); localStorage.setItem('app_accent_color',c.email_accent_color); }
+  applyBrand(c);
+
+  if(status==='success'){ setSteps(0); renderSuccess(); return; }
+  if(!S.companyId || !S.plans.length){ setSteps(0); renderNoCompany(!S.companyId); return; }
+  if(status==='cancel') toast('Checkout cancelled — your plan is still here.');
+
+  if(S.locations.length===0){ setSteps(0); renderNoCompany(false); return; }
+  if(S.locations.length===1){ S.loc=S.locations[0]; renderPlans(); }
+  else { renderLocations(); }
+}
+
+function applyBrand(c){
+  const skel=document.getElementById('brand-skeleton'),img=document.getElementById('logo-img'),
+        dot=document.getElementById('logo-dot'),nm=document.getElementById('logo-text'),lock=document.getElementById('lock');
+  const name=c.branding_company_name||'';
+  const show=()=>{ skel.style.display='none'; lock.style.display='inline-flex'; };
+  if(c.branding_logo_enabled !== '0' && c.branding_logo_url){
+    dot.style.display='none'; nm.style.display='none';
+    img.onload=()=>{img.style.display='block';show();};
+    img.onerror=()=>{img.style.display='none';nm.textContent=name||'Sign up';nm.style.display='';dot.textContent=(name.trim()[0]||'A').toUpperCase();dot.style.display='';show();};
+    img.alt=name; img.src=c.branding_logo_url;
+  }else{
+    nm.textContent=name||'Sign up'; nm.style.display='';
+    dot.textContent=(name.trim()[0]||'A').toUpperCase(); dot.style.display='';
+    show();
+  }
+  if(name) document.title='Sign up — '+name;
+}
+
+/* ── Step 1: locations ── */
+function renderLocations(){
+  setSteps(1);
+  const m=document.getElementById('main');
+  m.innerHTML=`<div class="head"><h1 class="reveal d2">Choose your address</h1><p class="reveal d3">This is the business address your mail will be sent to.</p></div>
+    <div class="body">
+      <div id="loc-list" class="loc-list reveal d4">${S.locations.map((l,i)=>locOpt(l,i)).join('')}</div>
+      <button class="btn reveal d5" id="loc-next" ${S.loc?'':'disabled'}><span>Continue</span><span class="chip">${ARROW}</span></button>
+    </div>`;
+  bindLoc();
+  document.getElementById('loc-next').onclick=()=>{ if(!S.loc){toast('Please choose a location','err');return;} renderPlans(); };
+}
+function locOpt(l,i){
+  const on=S.loc&&S.loc.location_id===l.location_id;
+  // Eyebrow = city (falls back to name). Headline = street (falls back to name).
+  // Sub-line = "Province Postal" since the city is already in the eyebrow; if
+  // there's no city eyebrow, fall back to the fuller "City, Province Postal".
+  const eyebrow = l.city || l.name || '';
+  const headline = l.address || l.name || l.location_id;
+  const sub = l.city ? [l.province,l.postal_code].filter(Boolean).join(' ') : cityLine(l);
+  const showSub = sub && sub !== headline;
+  const copyBtn = on ? `<button class="loc-copy" data-addr="${esc(fullAddr(l))}" title="Copy address" aria-label="Copy address" onclick="copyLocAddr(event,this)">${COPY('currentColor')}</button>` : '';
+  return `<div class="opt${on?' on':''}" data-i="${i}">
+    <span class="rad">${TICK('#fff')}</span>
+    <div class="body-t">
+      ${eyebrow?`<div class="eyebrow">${esc(eyebrow)}</div>`:''}
+      <div class="t">${esc(headline)}</div>
+      ${showSub?`<div class="d">${esc(sub)}</div>`:''}
+    </div>
+    ${copyBtn}
+  </div>`;
+}
+function bindLoc(){
+  document.querySelectorAll('#loc-list .opt').forEach(el=>el.onclick=()=>{
+    S.loc=S.locations[+el.dataset.i];
+    document.getElementById('loc-list').innerHTML=S.locations.map((l,i)=>locOpt(l,i)).join('');
+    bindLoc();
+    const n=document.getElementById('loc-next'); if(n) n.disabled=false;
+  });
+}
+
+/* ── Step 2: plans ── */
+function renderPlans(animate=true){
+  setSteps(S.hasLocStep?2:1);
+  const vp=visiblePlans();
+  if(!S.plan||!vp.includes(S.plan)) S.plan=vp.find(p=>p.is_featured)||vp[0]||null;
+  const m=document.getElementById('main');
+  const multi=S.hasLocStep&&S.loc;
+  // Reveal classes only on first entry; skipped on in-place re-selection.
+  const r=(cls)=>animate?(' reveal '+cls):'';
+  const chip=multi
+    ? `<div class="addr-chip${r('d2')}">${LOCATE('var(--accent)')}<span class="at">${esc(shortAddr(S.loc))}</span><button class="change" onclick="renderLocations()">Change</button></div>`:'';
+  const count=multi?`<p class="countline">${vp.length} ${vp.length===1?'plan':'plans'} available here</p>`:'';
+
+  // Pin a genuinely featured plan on top; the rest go in the list below.
+  const featured = vp.find(p=>p.is_featured) || null;
+  const rest = featured ? vp.filter(p=>p!==featured) : vp;
+
+  const pinnedHtml = featured ? `<div class="pinned${r('d3')}"><div class="plans">${planRow(featured)}</div></div>` : '';
+  // Scroll the "rest" list as a short window once there are more than a couple.
+  const doScroll = rest.length>=3;
+  const scrollCls = doScroll ? ' scrollable' : '';
+  const moreLabel = (featured && rest.length)
+    ? `<div class="more-label${r('d4')}"><span>More plans</span>${rest.length>1?`<span class="more-count">${rest.length} more</span>`:''}</div>`
+    : '';
+  let listHtml='';
+  if(rest.length){
+    const list=`<div class="plans${scrollCls}" id="plan-list">${rest.map(p=>planRow(p)).join('')}</div>`;
+    // V4: wrap with a vertical progress-dots rail when scrollable.
+    listHtml = doScroll
+      ? `<div class="scroll-wrap${r('d4')}">${list}<div class="scroll-dots" id="scroll-dots" aria-hidden="true"></div></div>`
+      : `<div class="${animate?'reveal d4':''}">${list}</div>`;
+  }
+
+  m.innerHTML=`<div class="head"><h1 class="${animate?'reveal d2':''}">Pick your plan</h1></div>
+    <div class="body">
+      ${chip}${count}
+      ${pinnedHtml}
+      ${moreLabel}
+      ${listHtml}
+      <button class="btn${r('d5')}" id="plan-next"><span>Continue</span><span class="chip">${ARROW}</span></button>
+      <p class="trustnote${r('d6')}">Cancel anytime · No hidden fees · prices before applicable tax</p>
+    </div>`;
+  bindPlans();
+  initPlanScroll();
+  document.getElementById('plan-next').onclick=()=>{ if(!S.plan){toast('Please pick a plan','err');return;} renderContact(); };
+}
+
+/* Vertical progress dots (V4) + smooth scroll-into-view for the open plan. */
+function initPlanScroll(){
+  const list=document.getElementById('plan-list');
+  const dots=document.getElementById('scroll-dots');
+  if(!list) return;
+  // Build one dot per row; the row(s) currently in view get the elongated/accent state.
+  const rows=Array.from(list.querySelectorAll('.prow'));
+  if(dots && rows.length){
+    dots.innerHTML=rows.map(()=>'<span></span>').join('');
+    const dotEls=Array.from(dots.children);
+    const paint=()=>{
+      const top=list.scrollTop, bottom=top+list.clientHeight;
+      rows.forEach((row,i)=>{
+        const rTop=row.offsetTop, rBottom=rTop+row.offsetHeight;
+        const visible = rBottom>top+8 && rTop<bottom-8;
+        dotEls[i].className = visible ? 'on' : '';
+      });
+    };
+    list.addEventListener('scroll', paint, {passive:true});
+    paint();
+    list._paintDots=paint;
+  }
+  // Scroll-into-view: if the selected plan is clipped, ease it into view — but
+  // always leave a "peek" of the rows above/below so the list still reads as
+  // scrollable. We never align a row flush to an edge.
+  const sel=list.querySelector('.prow.on');
+  // No open row: keep the CSS 190px window (clear any prior inline override).
+  if(!sel){ list.style.maxHeight=''; return; }
+  requestAnimationFrame(()=>{
+    // Auto-fit: grow the window so the open (expanded) row sits fully in view,
+    // leaving a half-row band above and below so the list still reads scrollable.
+    // Measure a collapsed sibling for the peek size; fall back to a constant.
+    const collapsed=rows.find(r=>r!==sel);
+    const rowH=(collapsed&&collapsed.offsetHeight)||56;
+    const PEEK=Math.round(rowH*0.5);                // half a collapsed row each side
+    list.style.maxHeight=(sel.offsetHeight+PEEK*2)+'px';
+    requestAnimationFrame(()=>{
+      // Center the open row: half-row peek above, next row's top half below.
+      const target=Math.max(0, sel.offsetTop-PEEK);
+      list.scrollTo({top:target, behavior:'smooth'});
+      if(list._paintDots) setTimeout(list._paintDots,350);
+    });
+  });
+}
+function locName(id){const l=S.locations.find(x=>x.location_id===id);return l?l.name:id;}
+function feeLine(p){
+  const bits=[]; const mo=money(p.mail_overage_fee), po=money(p.parcel_overage_fee);
+  if(mo) bits.push('<b>'+mo+'</b> per extra mail item');
+  if(po) bits.push('<b>'+po+'</b> per extra parcel');
+  let setup='';
+  if(p.setup_fee_display) setup='One-time setup fee: <b>'+esc(p.setup_fee_display)+'</b>. ';
+  else if(p.stripe_setup_price_id) setup='A one-time setup fee applies. ';
+  if(!bits.length && !setup) return '';
+  return `<div class="finefees">${setup}${bits.length?'Overages: '+bits.join(' · ')+'.':''}</div>`;
+}
+/* Checklist for the selected plan: allowance line(s) first, then features. */
+function planFeatures(p){
+  const items=[];
+  const a=[];
+  if(p.mail_limit)       a.push(esc(String(p.mail_limit))+' mail / '+_per(p));
+  if(p.parcels_included) a.push(esc(String(p.parcels_included))+' parcels / '+_per(p));
+  const _r=_recipTag(p); if(_r) a.push(esc(_r));
+  if(a.length) items.push(a.join(' + '));
+  featuresOf(p).forEach(f=>items.push(esc(f)));
+  return items;
+}
+/* Derived storage-retention line for the expanded card (display only — NOT a feature bullet).
+   "Mail held {mail_storage_days} days · parcels held {parcel_storage_days} days" (parcel part
+   only when the plan includes parcels). Omitted entirely if mail_storage_days is missing/falsy. */
+function storageLine(p){
+  if(!p.mail_storage_days) return '';
+  const _dys=n=>{const v=Number(n);return esc(String(n))+((v===1)?' day':' days');};
+  let txt='Mail held '+_dys(p.mail_storage_days);
+  if(p.parcels_included) txt+=' \u00b7 parcels held '+_dys(p.parcel_storage_days);
+  return '<div class="storage-line">'+ICON_CLOCK+'<span>'+txt+'</span></div>';
+}
+/* Inline allowance sub-line for collapsed rows (location-list style):
+   "10 mail / mo · 3 parcels / mo · 3 recipients" (/ yr for yearly plans)
+   plus a small auto-feature icon. */
+function planAllowanceTags(p){
+  const parts=[];
+  if(p.mail_limit)       parts.push(esc(String(p.mail_limit))+' mail/'+_per(p));
+  if(p.parcels_included) parts.push(esc(String(p.parcels_included))+' parcels/'+_per(p));
+  const _r=_recipTagShort(p); if(_r) parts.push(esc(_r));
+  let auto='';
+  if(p.auto_feature==='scan')      auto=`<span class="auto-ic" title="Auto scan — your mail is scanned to your inbox" aria-label="Auto scan">${ICON_SCAN}</span>`;
+  else if(p.auto_feature==='ship') auto=`<span class="auto-ic" title="Auto forward — bundled shipping of your mail" aria-label="Auto forward (bundled shipping)">${ICON_SHIP}</span>`;
+  if(!parts.length && !auto) return '';
+  return `<div class="allow-line">${parts.join(' · ')}${auto}</div>`;
+}
+function planRow(p){
+  const on=S.plan&&S.plan.product_id===p.product_id;
+  const ids=planLocIds(p), multi=S.hasLocStep;
+  let availTag='';
+  if(multi){
+    if(ids.length===0) availTag=`<span class="tag tag-all" tabindex="0" data-tip="Available at all our locations, including this one.">Any location</span>`;
+    else if(ids.length===1) availTag=`<span class="tag tag-loc" tabindex="0" data-tip="Only available at this location.">${LOCATE('#854f0b',10)} This Location Only</span>`;
+    else availTag=`<span class="tag tag-multi" tabindex="0" data-tip="Available at ${ids.length} locations, including this one.">${LOCATE('#0c447c',10)} At ${ids.length} locations</span>`;
+  }
+  return `<div class="prow${on?' on':''}" data-pid="${esc(p.product_id)}">
+    <div class="prow-head">
+      <span class="rdot">${TICK('#fff')}</span>
+      <div class="prow-mid">
+        <div class="prow-nm">${esc(p.plan_name)}${p.is_featured?'<span class="feat-pop">POPULAR</span>':''}${availTag}</div>
+        ${(on&&p.plan_memo)?`<div class="prow-memo">${esc(p.plan_memo)}</div>`:''}
+        ${on?'':planAllowanceTags(p)}
+      </div>
+      <div class="prow-price"><b>${esc(p.price_display||'—')}</b><span>${_perWord(p)}</span></div>
+    </div>
+    ${on?`<div class="prow-body">
+      <ul class="feats">${planFeatures(p).map(f=>`<li>${TICK('var(--accent)')}<span>${f}</span></li>`).join('')}</ul>
+      ${storageLine(p)}
+      ${feeLine(p)}
+    </div>`:''}
+  </div>`;
+}
+function bindPlans(){
+  document.querySelectorAll('.body .prow').forEach(el=>el.onclick=()=>{
+    const pid=el.getAttribute('data-pid');
+    const next=S.plans.find(p=>String(p.product_id)===String(pid));
+    if(next){ S.plan=next; renderPlans(false); }
+  });
+}
+
+/* ── Step 3: contact ── */
+function renderContact(){
+  setSteps(S.hasLocStep?3:2);
+  const p=S.plan, m=document.getElementById('main');
+  const _va = S.loc ? esc(fullAddr(S.loc)) : '';
+  const locLine=S.loc?`<div class="vo-addr" id="vo-addr" onclick="copyVOAddr()" title="Click to copy">
+      <span class="vo-ic">${LOCATE('var(--accent)',13)}</span>
+      <span class="vo-tx"><span class="vo-val" id="vo-val">${_va}</span></span>
+      <span class="vo-copy" id="vo-copy">${COPY('currentColor')}</span>
+    </div>`:'';
+  // Info pill always shows the tax note; prepends the setup fee when there is one.
+  let _feeTxt='';
+  if(p.setup_fee_display)        _feeTxt='One-time setup fee of <b>'+esc(p.setup_fee_display)+'</b> · ';
+  else if(p.stripe_setup_price_id) _feeTxt='A one-time setup fee applies · ';
+  const setupLine=`<div class="setup-pill reveal d4">${ICON_INFO}<span>${_feeTxt}plus applicable tax</span></div>`;
+  // Agree line: "I agree to {Company}'s policies." Link only if a policy URL is set.
+  const _co = esc(S.cfg.branding_company_name || 'our');
+  const _pol = (S.cfg.branding_policy_url||'').trim();
+  const _coPoss = _co + (S.cfg.branding_company_name ? '\u2019s' : '');
+  const agreeText = _pol
+    ? `I agree to <a href="${esc(_pol)}" target="_blank" rel="noopener">${_coPoss} policies</a>.`
+    : `I agree to ${_coPoss} policies.`;
+  m.innerHTML=`<div class="head"><h1 class="reveal d2">Create your account</h1><p class="reveal d3">We'll email a temporary password after payment.</p></div>
+    <div class="body compact">
+      <div class="summary reveal d4">
+        <div class="s1">
+          <div class="s-mid">
+            <div class="s-lab">Your plan</div>
+            <div class="s-line">${esc(p.plan_name)} · ${esc(p.price_display||'—')}<span class="s-pr-unit">/${_per(p)}</span></div>
+          </div>
+          <button class="s-change" onclick="renderPlans()">Change</button>
+        </div>
+        ${locLine}
+      </div>
+      ${setupLine}
+      <div class="frow reveal d5">
+        <div class="fg"><div class="lab"><label>First name</label></div><input class="field" id="f-first" type="text" placeholder="John" autocomplete="given-name"></div>
+        <div class="fg"><div class="lab"><label>Last name</label></div><input class="field" id="f-last" type="text" placeholder="Doe" autocomplete="family-name"></div>
+      </div>
+      <div class="fg reveal d6"><div class="lab"><label>Email</label></div><input class="field" id="f-email" type="email" placeholder="you@company.com" autocomplete="email"></div>
+      <div class="fg reveal d6"><div class="lab"><label>Phone</label></div>
+        <div class="phone-wrap" id="phone-wrap">
+          <span class="phone-cc">
+            <select id="f-cc">${COUNTRIES.map(x=>`<option value="${x.c}">${x.f} +${x.d}</option>`).join('')}</select>
+            <span class="chev">${CHEV}</span>
+          </span>
+          <input id="f-phone" type="tel" inputmode="tel" placeholder="(416) 555-0123" autocomplete="tel" maxlength="18">
+        </div>
+      </div>
+      <div class="frow reveal d6">
+        <div class="fg" style="margin-bottom:0"><div class="lab"><label>Referral source <span style="color:#C62828">*</span></label></div>
+          <select class="selfield placeholder" id="f-referral" onchange="this.classList.toggle('placeholder', this.value==='')">
+            <option value="">Select…</option>
+            <option value="Google Search">Google Search</option>
+            <option value="Referral">Referral</option>
+            <option value="Walk-in">Walk-in</option>
+            <option value="Social Media">Social Media</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="fg" style="margin-bottom:0"><div class="lab"><label>Region <span style="color:#C62828">*</span></label></div>
+          <select class="selfield placeholder" id="f-custtype" onchange="this.classList.toggle('placeholder', this.value==='')">
+            <option value="">Select…</option>
+            <option value="canadian">Canadian Customer</option>
+            <option value="us">U.S. Customer</option>
+            <option value="international">International Customer</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg reveal d6" style="margin-top:16px;margin-bottom:0">
+        <div id="promo-collapsed"><span class="promo-toggle" id="promo-open">${ICON_PLUS} I have a promo code</span></div>
+        <div id="promo-expanded" style="display:none">
+          <div class="promo-head"><label>Promo code</label><span class="promo-remove" id="promo-remove">Remove</span></div>
+          <div class="promo-field-wrap">
+            <input class="field" id="f-promo" type="text" placeholder="Enter code" autocomplete="off" style="text-transform:uppercase;letter-spacing:.05em">
+            <span class="promo-status" id="promo-status"></span>
+          </div>
+          <div class="promo-msg" id="promo-msg" style="display:none"></div>
+        </div>
+      </div>
+      <div class="agree reveal d6" id="agree"><span class="box">${TICK('#fff')}</span><span class="txt" id="agree-txt">${agreeText}</span></div>
+      <button class="btn reveal d6" id="pay" style="margin-top:18px"><span>Continue to payment</span><span class="chip">${ARROW}</span></button>
+      <div class="note reveal d7"><span class="sp-shield">${SHIELD}</span> Secured payment</div>
+    </div>`;
+  document.getElementById('f-first').focus();
+  // On blur: tidy capitalization. Names → First letter up, rest down. Email → all
+  // lowercase. Done on blur (not while typing) so the cursor never jumps.
+  const _capName=(s)=>{ s=(s||'').trim(); return s ? s.charAt(0).toUpperCase()+s.slice(1).toLowerCase() : s; };
+  ['f-first','f-last'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('blur',()=>{ el.value=_capName(el.value); }); });
+  const _em=document.getElementById('f-email'); if(_em) _em.addEventListener('blur',()=>{ _em.value=(_em.value||'').trim().toLowerCase(); });
+  // Phone: focus ring + country-aware formatting. NA (+1) gets (NPA) NXX-XXXX;
+  // others are grouped loosely. Re-format when the country changes.
+  const _pw=document.getElementById('phone-wrap'), _pi=document.getElementById('f-phone'), _cc=document.getElementById('f-cc');
+  if(_pi){
+    _pi.addEventListener('focus',()=>_pw.classList.add('focus'));
+    _pi.addEventListener('blur',()=>_pw.classList.remove('focus'));
+    _pi.addEventListener('input',formatPhone);
+  }
+  if(_cc) _cc.addEventListener('change',()=>{
+    const ct=_country(_cc.value);
+    _pi.value=''; _pi.placeholder = ct.d==='1' ? '(416) 555-0123' : 'Phone number';
+    _pi.maxLength = ct.d==='1' ? 18 : (ct.max+4);
+  });
+  // Promo expand/collapse (resets the live-check state).
+  const _po=document.getElementById('promo-open'), _pr=document.getElementById('promo-remove');
+  if(_po) _po.onclick=()=>{ document.getElementById('promo-collapsed').style.display='none'; document.getElementById('promo-expanded').style.display='block'; const f=document.getElementById('f-promo'); if(f) f.focus(); };
+  if(_pr) _pr.onclick=()=>{ const f=document.getElementById('f-promo'); if(f){ f.value=''; f.classList.remove('ok','bad'); } S.promoValid=false; _setPromoStatus('idle'); document.getElementById('promo-expanded').style.display='none'; document.getElementById('promo-collapsed').style.display='block'; };
+  // Promo live-check (debounced).
+  const _pf=document.getElementById('f-promo');
+  if(_pf) _pf.addEventListener('input',onPromoInput);
+  // Agree toggle
+  const _ag=document.getElementById('agree');
+  if(_ag) _ag.onclick=(e)=>{ if(e.target.tagName==='A') return; _ag.classList.toggle('on'); };
+  document.getElementById('pay').onclick=goToStripe;
+}
+
+// Live phone formatting. North-American (+1) → (NPA) NXX-XXXX; other countries
+// keep raw digits (grouping rules vary too much to format reliably).
+function formatPhone(e){
+  const cc=document.getElementById('f-cc'); const ct=_country(cc?cc.value:'CA');
+  if(ct.d==='1'){
+    let d=(e.target.value||'').replace(/\D/g,'').slice(0,10);
+    let out=d;
+    if(d.length>6) out='('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6);
+    else if(d.length>3) out='('+d.slice(0,3)+') '+d.slice(3);
+    else if(d.length>0) out='('+d;
+    e.target.value=out;
+  } else {
+    e.target.value=(e.target.value||'').replace(/[^\d]/g,'').slice(0,ct.max);
+  }
+}
+
+function _setPromoStatus(state){
+  const st=document.getElementById('promo-status'), msg=document.getElementById('promo-msg'), f=document.getElementById('f-promo');
+  if(!st||!msg||!f) return;
+  f.classList.remove('ok','bad');
+  if(state==='checking'){ st.innerHTML='<span class="promo-spin"></span>'; msg.style.display='none'; }
+  else if(state==='valid'){ st.innerHTML=TICK('#1d6b4f'); f.classList.add('ok'); msg.className='promo-msg ok'; msg.innerHTML=TICK('#1d6b4f')+'<span>Code applied</span>'; msg.style.display='flex'; }
+  else if(state==='invalid'){ st.innerHTML=XMARK; st.style.color='#a32d2d'; f.classList.add('bad'); msg.className='promo-msg bad'; msg.innerHTML=XMARK+'<span>Not a valid code</span>'; msg.style.display='flex'; }
+  else { st.innerHTML=''; msg.style.display='none'; }
+}
+function onPromoInput(e){
+  const code=(e.target.value||'').trim().toUpperCase();
+  S.promoValid=false;
+  clearTimeout(window._promoT);
+  if(!code){ _setPromoStatus('idle'); return; }
+  _setPromoStatus('checking');
+  window._promoT=setTimeout(()=>checkPromo(code),450);
+}
+async function checkPromo(code){
+  const myCode=code;
+  try{
+    const res=await fetch(SB_URL+'/functions/v1/validate-promo',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_ANON,'Authorization':'Bearer '+SB_ANON},
+      body:JSON.stringify({ company:S.companyId, code })
+    });
+    const data=await res.json().catch(()=>({valid:false}));
+    // Ignore if the field changed while we were checking.
+    const cur=(document.getElementById('f-promo')||{}).value||'';
+    if(cur.trim().toUpperCase()!==myCode) return;
+    if(data.valid){ S.promoValid=true; _setPromoStatus('valid'); }
+    else { S.promoValid=false; _setPromoStatus('invalid'); }
+  }catch(e){ S.promoValid=false; _setPromoStatus('invalid'); }
+}
+
+function copyVOAddr(){
+  const v=document.getElementById('vo-val'); if(!v) return;
+  const txt=v.textContent||'';
+  const done=()=>{ const c=document.getElementById('vo-copy'); if(c){ c.innerHTML=TICK('currentColor'); setTimeout(()=>{ c.innerHTML=COPY('currentColor'); },1400); } toast('Address copied','ok'); };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>done()); }
+  else { try{ const t=document.createElement('textarea'); t.value=txt; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); done(); }catch(e){} }
+}
+
+/* Copy the selected location's address. Stops propagation so the row's
+   click handler doesn't re-fire and re-render (which would wipe the tick). */
+function copyLocAddr(ev,btn){
+  if(ev){ ev.stopPropagation(); ev.preventDefault(); }
+  const txt=(btn&&btn.getAttribute('data-addr'))||'';
+  if(!txt) return;
+  const flash=()=>{ btn.innerHTML=TICK('currentColor'); setTimeout(()=>{ btn.innerHTML=COPY('currentColor'); },1400); toast('Address copied','ok'); };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(flash).catch(()=>flash()); }
+  else { try{ const t=document.createElement('textarea'); t.value=txt; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); flash(); }catch(e){} }
+}
+
+async function goToStripe(){
+  const email=document.getElementById('f-email').value.trim().toLowerCase();
+  const first=document.getElementById('f-first').value.trim();
+  const last=document.getElementById('f-last').value.trim();
+  const phoneDigits=(document.getElementById('f-phone').value||'').replace(/\D/g,'');
+  const promoEl=document.getElementById('f-promo');
+  const promo=promoEl?promoEl.value.trim().toUpperCase():'';
+  const referralSource=(document.getElementById('f-referral')||{}).value||'';
+  const custType=(document.getElementById('f-custtype')||{}).value||'';
+  const agreed=document.getElementById('agree')?.classList.contains('on');
+  const ct=_country((document.getElementById('f-cc')||{}).value||'CA');
+  if(!first){toast('Please enter your first name','err');return;}
+  if(!last){toast('Please enter your last name','err');return;}
+  if(!email.includes('@')){toast('Please enter a valid email','err');return;}
+  if(phoneDigits.length<ct.min || phoneDigits.length>ct.max){toast('Please enter a valid phone number','err');return;}
+  if(!referralSource){toast('Please tell us how you heard about us','err');return;}
+  if(!custType){toast('Please select your customer type','err');return;}
+  // A promo code was entered but didn't validate — block rather than send a bad code.
+  if(promo && !S.promoValid){toast('That promo code is not valid','err');return;}
+  if(!agreed){toast('Please agree to the policies to continue','err');return;}
+  if(!S.stripeKey){toast('Payment is not configured for this company','err');return;}
+  // E.164: + dial code + national digits.
+  const phoneE164='+'+ct.d+phoneDigits;
+
+  const btn=document.getElementById('pay');
+  btn.disabled=true; btn.innerHTML='<span>Redirecting…</span><span class="chip"><span class="spinner"></span></span>';
+
+  try{
+    // Pre-payment guard: block checkout if this email already has ANY account on
+    // the platform (Auth user, client, staff, or admin). check-email checks Auth
+    // users + the clients table, so one email = one account platform-wide. This
+    // prevents double-charging existing clients AND charging a staff/admin email
+    // into a dead, login-less client row. Fails OPEN — a flaky check never blocks
+    // a real signup.
+    try{
+      const _ce=await fetch(SB_URL+'/functions/v1/check-email',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ email })
+      });
+      const _cd=await _ce.json();
+      if(_cd && _cd.exists===true){
+        toast('You already have an account — please log in instead.','err');
+        btn.disabled=false; btn.innerHTML='<span>Continue to payment</span><span class="chip">'+ARROW+'</span>';
+        return;
+      }
+    }catch(_e){ /* check failed — allow signup to proceed */ }
+
+    // Init Stripe up front so the library load happens during the network wait,
+    // not as a synchronous blocking step right before the redirect.
+    const stripe=Stripe(S.stripeKey);
+    const base=location.href.replace(/[^/]*(\?.*)?$/,'');
+    const success=base+'signup.html?company='+encodeURIComponent(S.companyId)+'&status=success';
+    const cancel =base+'signup.html?company='+encodeURIComponent(S.companyId)+'&status=cancel';
+    const res=await fetch(SB_URL+'/functions/v1/create-checkout-session',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        priceId:S.plan.stripe_price_id, setupPriceId:S.plan.stripe_setup_price_id||null, email, firstName:first, lastName:last,
+        phone:phoneE164, promoCode:promo||null, referralSource:referralSource||null, customerType:custType||null,
+        locationId:S.loc?S.loc.location_id:null, successUrl:success, cancelUrl:cancel
+      })
+    });
+    const data=await res.json();
+    if(!res.ok||!data.sessionId) throw new Error(data.error||'Failed to start checkout');
+    await stripe.redirectToCheckout({sessionId:data.sessionId});
+  }catch(err){
+    toast(err.message||'Payment redirect failed','err');
+    btn.disabled=false; btn.innerHTML='<span>Continue to payment</span><span class="chip">'+ARROW+'</span>';
+  }
+}
+
+function renderSuccess(){
+  const m=document.getElementById('main');
+  m.innerHTML=`<div class="center">
+    <div class="ico-big reveal d2" style="background:color-mix(in srgb,var(--accent) 12%,transparent)"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <h1 class="reveal d3" style="font-family:'Fraunces',serif;font-weight:400;font-size:24px;letter-spacing:-.015em">Payment received</h1>
+    <p class="reveal d4" style="font-size:13.5px;color:var(--muted);max-width:340px;margin:11px auto 0;line-height:1.5">Check your inbox — we've emailed a temporary password to sign in and finish setting up your mailbox.</p>
+    <div class="reveal d5" style="margin-top:22px;padding:13px 16px;border-radius:12px;background:var(--band-bg);border:1px solid var(--card-divider);font-size:12.5px;color:var(--faint);line-height:1.55">Didn't arrive in a few minutes? Check spam, or reach out to our team.</div>
+  </div>`;
+}
+
+function renderNoCompany(noParam){
+  const m=document.getElementById('main');
+  m.innerHTML=`<div class="center">
+    <div class="ico-big reveal d2" style="background:#7a223010"><span style="font-size:28px;color:#7a2230">!</span></div>
+    <h1 class="reveal d3" style="font-family:'Fraunces',serif;font-weight:400;font-size:22px;letter-spacing:-.015em">${noParam?'No company specified':'No plans available'}</h1>
+    <p class="reveal d4" style="font-size:13.5px;color:var(--muted);max-width:340px;margin:11px auto 0;line-height:1.5">${noParam
+      ?"This signup link is missing its company. Please use the signup link provided by your mailbox company."
+      :"There are no plans open for signup right now. Please contact us and we'll help you get started."}</p>
+  </div>`;
+}
+
+/* Location-tag tooltip: a single fixed-position bubble, positioned on hover/focus so it
+   escapes the scrollable plan list's overflow clipping. Delegated → survives re-renders. */
+(function(){
+  var bubble;
+  function ensure(){ if(!bubble){ bubble=document.createElement('div'); bubble.id='tagtip-bubble'; document.body.appendChild(bubble); } return bubble; }
+  function show(el){
+    var tip=el.getAttribute('data-tip'); if(!tip) return;
+    var b=ensure(); b.textContent=tip; b.classList.add('on');
+    var r=el.getBoundingClientRect(); var bw=b.offsetWidth, bh=b.offsetHeight, gap=7, pad=8;
+    var top=r.bottom+gap;
+    if(top+bh>window.innerHeight-pad) top=r.top-gap-bh; /* flip above if no room below */
+    if(top<pad) top=pad;
+    var left=r.left;
+    if(left+bw>window.innerWidth-pad) left=window.innerWidth-pad-bw;
+    if(left<pad) left=pad;
+    b.style.top=top+'px'; b.style.left=left+'px';
+  }
+  function hide(){ if(bubble) bubble.classList.remove('on'); }
+  document.addEventListener('mouseover',function(e){ var t=e.target.closest&&e.target.closest('.tag[data-tip]'); if(t) show(t); });
+  document.addEventListener('mouseout',function(e){ var t=e.target.closest&&e.target.closest('.tag[data-tip]'); if(t) hide(); });
+  document.addEventListener('focusin',function(e){ var t=e.target.closest&&e.target.closest('.tag[data-tip]'); if(t) show(t); });
+  document.addEventListener('focusout',function(e){ var t=e.target.closest&&e.target.closest('.tag[data-tip]'); if(t) hide(); });
+  window.addEventListener('scroll',hide,true);
+})();
+
+window.renderLocations=renderLocations;window.renderPlans=renderPlans;window.renderContact=renderContact;window.copyVOAddr=copyVOAddr;window.copyLocAddr=copyLocAddr;
+boot();
+</script>
+</body>
+</html>

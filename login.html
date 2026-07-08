@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A1A1F; --ink-2:#4A4A52; --ink-3:#8A8A92; --ink-4:#B5B5BC;
+    --bg:#F7F6F4; --white:#FFFFFF; --border:#E8E6E2;
+    --accent:#1A1A1F; --radius:12px; --green:#1A6B3C; --red:#B23A3A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);
+    color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{width:100%;max-width:400px;background:var(--white);border:1px solid var(--border);
+    border-radius:20px;padding:44px 38px;box-shadow:0 18px 50px rgba(0,0,0,0.06)}
+  .logo-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:30px;min-height:44px;justify-content:center}
+  #brand-logo{max-height:52px;max-width:220px;width:auto;display:none}
+  #brand-name{font-family:'DM Serif Display',Georgia,serif;font-size:26px;color:var(--ink);letter-spacing:-.01em;display:none}
+  label{display:block;font-size:12px;font-weight:600;color:var(--ink-3);margin:0 0 7px}
+  .field{margin-bottom:16px}
+  input{width:100%;padding:13px 15px;background:var(--bg);border:1.5px solid var(--border);
+    border-radius:var(--radius);font-size:14.5px;font-family:inherit;color:var(--ink);transition:border-color .15s,background .15s}
+  input:focus{outline:none;border-color:var(--accent);background:var(--white)}
+  .row-between{display:flex;align-items:center;justify-content:flex-end;margin:8px 0 0}
+  .forgot{font-size:12px;color:var(--ink-3);text-decoration:none;font-weight:600}
+  .forgot:hover{color:var(--accent)}
+  button{width:100%;margin-top:22px;padding:14px;background:var(--accent);color:#fff;border:none;
+    border-radius:var(--radius);font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+  button:hover{opacity:.9}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;
+    border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .toast{display:none;margin-top:18px;padding:11px 13px;border-radius:10px;font-size:12.5px;line-height:1.45}
+  .toast.err{display:block;background:rgba(178,58,58,0.09);border:1px solid rgba(178,58,58,0.25);color:#8E2E2E}
+  .toast.ok{display:block;background:rgba(26,107,60,0.09);border:1px solid rgba(26,107,60,0.25);color:var(--green)}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-wrap">
+      <img id="brand-logo" src="" alt="">
+      <div id="brand-name">Sign in</div>
+    </div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" autocomplete="username" placeholder="you@company.com">
+    </div>
+
+    <div class="field">
+      <label for="pw">Password</label>
+      <input type="password" id="pw" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+      <div class="row-between"><a class="forgot" href="reset-password.html">Forgot password?</a></div>
+    </div>
+
+    <button id="btn" onclick="login()">Sign in</button>
+    <div class="toast" id="toast"></div>
+  </div>
+
+<script>
+const SB_URL  = 'https://catpufkbjmcjmtuisdok.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhdHB1Zmtiam1jam10dWlzZG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMjQ4MjUsImV4cCI6MjA4NzgwMDgyNX0.ZU1AgV1C0Lph8WQPXwt4ZYKymAIYtwEOnovtwhcNwS4';
+
+// Branding for this login page is controlled by the super-admin (platform-level),
+// stored in config under a reserved platform scope. Read the public-safe keys; if
+// none set, fall back to a neutral "Sign in" label.
+async function loadBranding(){
+  try {
+    const PLATFORM_ID = '1db5b8c6-030c-461f-8179-f35146fca15e';
+    const r = await fetch(SB_URL + '/rest/v1/config?company_id=eq.' + PLATFORM_ID + '&key=in.(platform_login_logo_url,platform_login_name)&select=key,value', {
+      headers:{ 'apikey':SB_ANON, 'Authorization':'Bearer ' + SB_ANON, 'Accept':'application/json' }
+    });
+    const rows = await r.json().catch(()=>[]);
+    const cfg = {};
+    (Array.isArray(rows)?rows:[]).forEach(x=>{ if(x.value) cfg[x.key] = x.value; });
+    const logoEl = document.getElementById('brand-logo');
+    const nameEl = document.getElementById('brand-name');
+    if (cfg.platform_login_logo_url) {
+      logoEl.src = cfg.platform_login_logo_url;
+      logoEl.style.display = 'block';
+      logoEl.alt = cfg.platform_login_name || '';
+      nameEl.style.display = 'none';
+    } else {
+      nameEl.textContent = cfg.platform_login_name || 'Sign in';
+      nameEl.style.display = 'block';
+    }
+  } catch(e) {
+    document.getElementById('brand-name').style.display = 'block';
+  }
+}
+
+function showToast(msg, kind){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (kind || 'err');
+}
+
+function clearStaffSession(){
+  ['sb_staff_access_token','sb_staff_refresh_token','sb_staff_staff_id',
+   'sb_admin_access_token','sb_admin_refresh_token','sb_admin_staff_id'].forEach(k=>localStorage.removeItem(k));
+}
+
+async function login(){
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const pw    = document.getElementById('pw').value;
+  const btn   = document.getElementById('btn');
+  document.getElementById('toast').className = 'toast';
+  if(!email || !pw){ showToast('Enter your email and password.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Signing in...';
+
+  try {
+    const res = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'apikey':SB_ANON },
+      body: JSON.stringify({ email, password: pw })
+    });
+    const data = await res.json();
+    if(!res.ok){ throw new Error(data.error_description || data.message || 'Invalid email or password'); }
+
+    const token = data.access_token;
+    const authId = data.user.id;
+
+    const staffRes = await fetch(SB_URL + '/rest/v1/staff?auth_id=eq.' + authId + '&active=eq.true&select=staff_id,role,company_id&limit=1', {
+      headers:{ 'apikey':SB_ANON, 'Authorization':'Bearer ' + token, 'Accept':'application/json' }
+    });
+    const staff = await staffRes.json().catch(()=>[]);
+
+    if(!Array.isArray(staff) || !staff.length){
+      clearStaffSession();
+      showToast('No active account found for this email.');
+      btn.disabled = false; btn.innerHTML = 'Sign in'; return;
+    }
+
+    const me = staff[0];
+
+    // Gateway: block suspended or closed companies
+    if(me.company_id){
+      const coRes = await fetch(SB_URL + '/rest/v1/companies?id=eq.' + me.company_id + '&select=staff_access_enabled,archived&limit=1', {
+        headers:{ 'apikey':SB_ANON, 'Authorization':'Bearer ' + token, 'Accept':'application/json' }
+      });
+      const co = await coRes.json().catch(()=>[]);
+      if(Array.isArray(co) && co.length){
+        if(co[0].archived){
+          clearStaffSession();
+          showToast('This account has been closed. Please contact support.');
+          btn.disabled = false; btn.innerHTML = 'Sign in'; return;
+        }
+        if(co[0].staff_access_enabled === false){
+          clearStaffSession();
+          showToast('Access is currently suspended. Please contact support.');
+          btn.disabled = false; btn.innerHTML = 'Sign in'; return;
+        }
+      }
+    }
+
+    const staffId = me.staff_id;
+    if(me.role === 'admin'){
+      localStorage.setItem('sb_admin_access_token', token);
+      localStorage.setItem('sb_admin_refresh_token', data.refresh_token);
+      localStorage.setItem('sb_admin_staff_id', staffId);
+      showToast('Signed in — redirecting…', 'ok');
+      setTimeout(()=>{ window.location.href = 'admin.html'; }, 700);
+    } else {
+      localStorage.setItem('sb_staff_access_token', token);
+      localStorage.setItem('sb_staff_refresh_token', data.refresh_token);
+      localStorage.setItem('sb_staff_staff_id', staffId);
+      showToast('Signed in — redirecting…', 'ok');
+      setTimeout(()=>{ window.location.href = 'staff.html'; }, 700);
+    }
+
+  } catch(err){
+    showToast(err.message || 'Sign in failed. Please try again.');
+    btn.disabled = false; btn.innerHTML = 'Sign in';
+  }
+}
+
+loadBranding();
+</script>
+</body>
+</html>
