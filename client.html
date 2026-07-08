@@ -917,13 +917,26 @@
   /* ═══ ID Verification — signup-style full takeover ═══ */
   /* First-time plan setup takeover: same signup-style background, content centered. */
   body.ob-fs-on #content-area{position:fixed;inset:0;z-index:1100;overflow-y:auto;
-       display:grid;place-items:center;padding:24px;
+       -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+       display:flex;flex-direction:column;align-items:center;padding:24px;
        background:linear-gradient(165deg,
          color-mix(in srgb,var(--red) 7%,#fff) 0%,
          color-mix(in srgb,var(--red) 15%,#fff) 40%,
          color-mix(in srgb,var(--red) 24%,#fff) 75%,
          color-mix(in srgb,var(--red) 32%,#fff) 100%);}
   body.ob-fs-on #content-area .vov-stage{padding:0 !important}
+  /* Normal-chrome plan setup (adding a plan when a live plan already exists):
+     ob-fs-on is not applied, so the setup card renders inside #content-area,
+     whose ancestor #app-scroll is overflow:hidden. Without its own scroll the
+     tall setup step was clipped on mobile and Continue was unreachable. Scroll
+     on the full-width #content-area (so the scrollbar sits at the window's right
+     edge like .main, not on the narrow centered card). The card keeps its own
+     max-width + margin:auto and centers inside. Only when NOT in the first-time
+     fullscreen takeover, so ob-fs-on centering is untouched. */
+  body:not(.ob-fs-on) #content-area:has(> #setup-section){
+       flex:1;min-height:0;width:100%;overflow-y:auto;overflow-x:hidden;
+       -webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:24px;
+       display:block;}
   .vov{position:fixed;inset:0;z-index:1200;overflow-y:auto;display:grid;place-items:center;padding:24px;
        font-family:'Inter',sans-serif;
        background:linear-gradient(165deg,
@@ -1780,7 +1793,34 @@ function _myDocsGoBack() {
 function _myDocsBackToSetup() {
   // Re-run the setup router (rebuilds the setup/selection screen into
   // content-area, replacing the tab shell). Used when a plan is awaiting setup.
-  _renderClientInner(STATE.access);
+  _resumePlanSetup();
+}
+
+// Return to the plan that is awaiting setup - NOT the client's best live plan.
+// _renderClientInner picks a fully set-up ACTIVE plan first, so when a client
+// already has a live plan and is setting up an additional one, routing through
+// it landed them on the live plan's mail log instead of the setup they were in.
+// This finds the pending-setup sub and renders it directly (same selection logic
+// as _renderClientInner's setup branch).
+function _resumePlanSetup() {
+  const access = STATE.access || {};
+  const subs = (access.subscriptions || []).filter(s => s.subscriptionId);
+  STATE.allSubs = subs;
+  const pendingSetup = subs.filter(s => s.canAccess && s.setupRequired);
+  if (!pendingSetup.length) { _renderClientInner(access); return; }
+  const needsSelection = pendingSetup.filter(s => s.setupStep === 'plan_setup');
+  if (needsSelection.length > 1) {
+    try { renderSubscriptionSwitcher(access); } catch (e) {}
+    renderPlanSelection(access);
+    return;
+  }
+  const priority  = ['add_recipients', 'plan_setup'];
+  const resumeSub = pendingSetup.slice().sort((a, b) =>
+    priority.indexOf(a.setupStep) - priority.indexOf(b.setupStep)
+  )[0];
+  STATE.activeSub = resumeSub;
+  try { renderSubscriptionSwitcher(access); } catch (e) {}
+  loadAndRenderSub(resumeSub, access);
 }
 
 
@@ -2673,7 +2713,7 @@ async function renderBillingTab() {
           'Back to My Plan' +
         '</button>'
         : ((STATE.allSubs || []).some(s => s.canAccess && s.setupRequired) ?
-        '<button onclick="_renderClientInner(STATE.access)" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;font-size:12px;font-weight:600;color:var(--ink-4);cursor:pointer;font-family:inherit;padding:0;margin-bottom:20px;transition:color .15s" onmouseover="this.style.color=\'var(--ink)\'" onmouseout="this.style.color=\'var(--ink-4)\'">' +
+        '<button onclick="_resumePlanSetup()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;font-size:12px;font-weight:600;color:var(--ink-4);cursor:pointer;font-family:inherit;padding:0;margin-bottom:20px;transition:color .15s" onmouseover="this.style.color=\'var(--ink)\'" onmouseout="this.style.color=\'var(--ink-4)\'">' +
           '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>' +
           'Back to setup' +
         '</button>' : '')) +
@@ -4156,7 +4196,7 @@ function goToPlansFromBlocked() {
   // (otherwise this screen is a dead-end requiring a page reload).
   const _showBackToSetup = (STATE.allSubs || []).some(s => s.canAccess && s.setupRequired);
   const _backToSetup = _showBackToSetup
-    ? '<button onclick="_renderClientInner(STATE.access)" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font-size:12px;font-weight:600;color:' + _pt.text + ';font-family:inherit;padding:0;margin-bottom:20px">' +
+    ? '<button onclick="_resumePlanSetup()" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font-size:12px;font-weight:600;color:' + _pt.text + ';font-family:inherit;padding:0;margin-bottom:20px">' +
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>' +
         'Back to setup' +
       '</button>'
@@ -4284,6 +4324,18 @@ function _ppExit() {
     loadAndRenderSub(sub, STATE.access);
     // Always land on the My Plan tab of the plan they came from.
     setTimeout(() => { try { switchTab('plans'); } catch (e) {} }, 0);
+    return;
+  }
+  // If they came from a plan that is still awaiting setup, return them to that
+  // setup flow rather than dropping onto their best live plan's mail log.
+  if (sub && sub.canAccess && sub.setupRequired) {
+    STATE.activeSub = sub;
+    try { renderSubscriptionSwitcher(STATE.access); } catch (e) {}
+    loadAndRenderSub(sub, STATE.access);
+    return;
+  }
+  if ((STATE.allSubs || subs).some(s => s.canAccess && s.setupRequired)) {
+    _resumePlanSetup();
     return;
   }
   _renderClientInner(STATE.access);
