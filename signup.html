@@ -24,8 +24,26 @@
 
   body {
     font-family:'Geist', sans-serif; -webkit-font-smoothing:antialiased; color:var(--ink);
-    display:grid; justify-items:center; align-content:safe center; padding:24px; position:relative; overflow-x:hidden; min-height:100%;
-    background:linear-gradient(165deg, var(--bg-a) 0%, var(--bg-b) 40%, var(--bg-c) 75%, var(--bg-d) 100%); transition:background .5s ease;
+    /* Flex column centers the card when it fits. Vertical gutters live on .stage as
+       margins (not body padding) because a scroll container's bottom padding is
+       dropped from scroll overflow — that dropped gutter was the cramped-bottom
+       seam on phones. Horizontal padding stays on body. */
+    display:flex; flex-direction:column; align-items:center; justify-content:safe center;
+    padding:0 24px; position:relative; overflow-x:hidden; min-height:100dvh;
+  }
+  /* Auto side-margins center horizontally. Top gutter is the stage's own margin;
+     the bottom gutter is reserved by the spacer below (a scroll container drops a
+     last-child's trailing margin/padding from scroll height, so we use a real,
+     non-shrinking flex item instead). */
+  .stage { margin:24px auto 0; }
+  /* Bottom gutter that survives overflow — an explicitly sized, non-shrinking item. */
+  body::after { content:''; display:block; width:1px; min-height:24px; flex:0 0 24px; }
+  /* Gradient lives on a FIXED backdrop so it always fills the viewport and can
+     never scroll short (the old body-background seam on mobile). Behind everything. */
+  body::before {
+    content:''; position:fixed; inset:0; z-index:-1;
+    background:linear-gradient(165deg, var(--bg-a) 0%, var(--bg-b) 40%, var(--bg-c) 75%, var(--bg-d) 100%);
+    transition:background .5s ease;
   }
 
   .amb { position:fixed; inset:0; z-index:0; pointer-events:none; }
@@ -80,6 +98,25 @@
 
   /* ── Location list (V2: flat joined list, radio marker, copy on selected) ── */
   .loc-list { background:#fff; border:1px solid var(--field-border); border-radius:13px; overflow:hidden; margin-bottom:4px; }
+  /* Scrollable (>4 locations): same treatment as .plans.scrollable — a short window
+     sized to ~3.5 rows so the 4th row is cut in half, which reads clearly as "more
+     below." Soft top fade, hidden scrollbar. The dots rail + chevron cue reinforce it. */
+  .loc-list.scrollable { max-height:256px; overflow-y:auto; min-height:0;
+    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14px,#000 100%);
+            mask-image:linear-gradient(180deg,transparent 0,#000 14px,#000 100%);
+    scrollbar-width:none; }
+  .loc-list.scrollable::-webkit-scrollbar { width:0; height:0; }
+  /* Scroll cue: a bare chevron floating over the half-cut last row (inside the box)
+     on the location list. Centered on the list area (the wrap reserves 16px on the
+     right for the dots rail, so shift left by half that). A white drop-shadow keeps
+     it legible over any row; it bobs gently and fades out at the bottom (opacity
+     toggled in JS). The plan list uses its "N more" label instead, so no cue there. */
+  .scroll-cue { position:absolute; left:calc(50% - 8px); bottom:8px; transform:translateX(-50%);
+    color:var(--accent); pointer-events:none; transition:opacity .25s ease;
+    filter:drop-shadow(0 1px 2px rgba(255,255,255,.9));
+    animation:scroll-cue-bob 1.4s ease-in-out infinite; }
+  @keyframes scroll-cue-bob { 0%,100%{transform:translateX(-50%) translateY(0);} 50%{transform:translateX(-50%) translateY(3px);} }
+  @media (prefers-reduced-motion: reduce) { .scroll-cue { animation:none; } }
   .opt { display:flex; align-items:center; gap:12px; padding:13px 15px; cursor:pointer; background:#fff;
          border-left:3px solid transparent; transition:background .2s, border-color .2s; }
   /* hairline divider between rows, inset past the radio */
@@ -229,15 +266,23 @@
   .selfield:focus { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
   .selfield.placeholder { color:#9aa0a4; }
 
-  /* Compact: tighter spacing for the Create-your-account step only. */
-  .compact .fg { margin-bottom:12px; }
-  .compact .lab { margin-bottom:6px; }
-  .compact .field { padding:10px 14px; }
-  .compact .selfield { padding:10px 36px 10px 14px; }
+  /* Compact: tight spacing for the Create-your-account step only (Option C). */
+  .compact .summary { margin-bottom:10px; padding:11px 13px; }
+  .compact .summary .vo-addr { margin-top:8px; padding-top:8px; }
+  .compact .setup-pill { margin:-6px 0 10px; padding:4px 10px; }
+  .compact .fg { margin-bottom:9px; }
+  .compact .frow { gap:9px; }
+  .compact .lab { margin-bottom:4px; }
+  .compact label { font-size:9.5px; letter-spacing:.11em; }
+  .compact .field { padding:8px 14px; }
+  .compact .selfield { padding:8px 36px 8px 14px; }
   .compact .phone-wrap input,
-  .compact .phone-wrap .phone-cc select { padding-top:10px; padding-bottom:10px; }
-  .compact .agree { margin-top:14px; }
-  .compact #pay { margin-top:14px !important; }
+  .compact .phone-wrap .phone-cc select { padding-top:8px; padding-bottom:8px; }
+  .compact .agree { margin-top:9px; }
+  .compact .agree .txt { font-size:11.5px; line-height:1.4; }
+  .compact #pay { margin-top:11px !important; height:48px; }
+  .compact .note { margin-top:8px; }
+  .compact .head h1 { font-size:21px; }
 
   /* Phone with country dropdown */
   .phone-wrap { display:flex; align-items:stretch; background:var(--field-bg); border:1px solid var(--field-border); border-radius:11px; overflow:hidden; transition:border-color .2s, box-shadow .2s; }
@@ -365,6 +410,7 @@ const ICON_CLOCK='<svg viewBox="0 0 24 24" width="12.5" height="12.5" fill="none
 const COPY=c=>'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 const ICON_PLUS='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 const CHEV='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+const CHEV_DOWN='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 const XMARK='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
 /* Curated dial codes. min/max = national-number digit length (approximate, sane bounds).
    Canada default. Codes with shared dial (+1) are fine — we store full E.164. */
@@ -520,13 +566,54 @@ function applyBrand(c){
 function renderLocations(){
   setSteps(1);
   const m=document.getElementById('main');
+  // >4 locations → scrollable window with the SAME affordance as the plans list:
+  // a short window that half-cuts the last row + a vertical progress-dots rail so
+  // the user sees there's more below. ≤4 renders unbounded (no scroll, no rail).
+  const doScroll = S.locations.length>4;
+  const scrollCls = doScroll ? ' scrollable' : '';
+  const list=`<div id="loc-list" class="loc-list${scrollCls}${doScroll?'':' reveal d4'}">${S.locations.map((l,i)=>locOpt(l,i)).join('')}</div>`;
+  const listHtml = doScroll
+    ? `<div class="scroll-wrap reveal d4">${list}<div class="scroll-dots" id="loc-scroll-dots" aria-hidden="true"></div><div class="scroll-cue" id="loc-cue" aria-hidden="true">${CHEV_DOWN}</div></div>`
+    : list;
   m.innerHTML=`<div class="head"><h1 class="reveal d2">Choose your address</h1><p class="reveal d3">This is the business address your mail will be sent to.</p></div>
     <div class="body">
-      <div id="loc-list" class="loc-list reveal d4">${S.locations.map((l,i)=>locOpt(l,i)).join('')}</div>
+      ${listHtml}
       <button class="btn reveal d5" id="loc-next" ${S.loc?'':'disabled'}><span>Continue</span><span class="chip">${ARROW}</span></button>
     </div>`;
   bindLoc();
+  initLocScroll();
   document.getElementById('loc-next').onclick=()=>{ if(!S.loc){toast('Please choose a location','err');return;} renderPlans(); };
+}
+/* Location dots rail — mirrors initPlanScroll's dot painting. Location rows don't
+   expand, so there's no scroll-into-view/auto-fit step; just one dot per row,
+   elongated/accent for the row(s) currently in view. */
+function initLocScroll(){
+  const list=document.getElementById('loc-list');
+  const dots=document.getElementById('loc-scroll-dots');
+  if(!list||!dots) return;
+  const count=list.querySelectorAll('.opt').length;
+  if(!count) return;
+  dots.innerHTML=Array.from({length:count},()=>'<span></span>').join('');
+  const dotEls=Array.from(dots.children);
+  const cue=document.getElementById('loc-cue');
+  // Re-query rows on every paint: bindLoc() rewrites #loc-list.innerHTML on select,
+  // which detaches the old .opt nodes. A captured rows array would go stale and the
+  // dots would freeze/stop tracking — so we read the live rows each time instead.
+  const paint=()=>{
+    const rows=list.querySelectorAll('.opt');
+    const top=list.scrollTop, bottom=top+list.clientHeight;
+    rows.forEach((row,i)=>{
+      const rTop=row.offsetTop, rBottom=rTop+row.offsetHeight;
+      const visible = rBottom>top+8 && rTop<bottom-8;
+      if(dotEls[i]) dotEls[i].className = visible ? 'on' : '';
+    });
+    // Fade the scroll-cue chevron once the list is scrolled to the bottom.
+    if(cue) cue.style.opacity = (top + list.clientHeight >= list.scrollHeight - 4) ? '0' : '';
+  };
+  // Guard against double-binding if init runs more than once on the same element.
+  if(!list._locScrollBound){ list.addEventListener('scroll', paint, {passive:true}); list._locScrollBound=true; }
+  paint();
+  list._paintDots=paint;
 }
 function locOpt(l,i){
   const on=S.loc&&S.loc.location_id===l.location_id;
@@ -551,8 +638,11 @@ function locOpt(l,i){
 function bindLoc(){
   document.querySelectorAll('#loc-list .opt').forEach(el=>el.onclick=()=>{
     S.loc=S.locations[+el.dataset.i];
-    document.getElementById('loc-list').innerHTML=S.locations.map((l,i)=>locOpt(l,i)).join('');
+    const list=document.getElementById('loc-list');
+    list.innerHTML=S.locations.map((l,i)=>locOpt(l,i)).join('');
     bindLoc();
+    // Rows were just replaced — repaint the scroll dots against the fresh nodes.
+    if(list._paintDots) list._paintDots();
     const n=document.getElementById('loc-next'); if(n) n.disabled=false;
   });
 }
@@ -797,7 +887,7 @@ function renderContact(){
           </select>
         </div>
       </div>
-      <div class="fg reveal d6" style="margin-top:16px;margin-bottom:0">
+      <div class="fg reveal d6" style="margin-top:8px;margin-bottom:0">
         <div id="promo-collapsed"><span class="promo-toggle" id="promo-open">${ICON_PLUS} I have a promo code</span></div>
         <div id="promo-expanded" style="display:none">
           <div class="promo-head"><label>Promo code</label><span class="promo-remove" id="promo-remove">Remove</span></div>
