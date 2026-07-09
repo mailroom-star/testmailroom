@@ -81,6 +81,16 @@
     .chip-filter{padding:4px 8px !important;font-size:9px !important}
     .chip-filter.chip-sm{padding:3px 6px !important;font-size:8px !important}
     .mod-select{font-size:10px !important;padding:5px 22px 5px 6px !important}
+    /* Products & plans — mobile layout (phone only) */
+    .apl-desktop-table{display:none !important}   /* hide the scrolling table */
+    .apl-cards{display:block !important}           /* show stacked cards */
+    .apl-header-desktop{display:none !important}   /* hide desktop header row */
+    .apl-header-mobile{display:flex !important}    /* show compact header (title left, buttons right) */
+    .apl-flt{flex-direction:column;align-items:stretch !important;gap:8px !important}
+    .apl-flt-g{flex:none !important;display:flex !important;align-items:center;gap:8px}
+    .apl-flt-cap{margin:0 !important;width:64px;flex-shrink:0}
+    .apl-flt .mod-select{flex:1;width:auto !important}
+    .apl-flt-clear{align-self:flex-end}
     #apc-chip-row{flex-wrap:wrap !important;gap:3px !important}
     /* Temp recipient form (clients pane) */
     div[id^="tmp-grid-"]{grid-template-columns:1fr !important}
@@ -136,6 +146,51 @@
   .apl-arch svg{width:14px;height:14px;flex-shrink:0}
   .apl-arch-cnt{display:inline-flex;align-items:center;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;background:var(--bg-2);color:var(--ink-3)}
   .apl-arch.on .apl-arch-cnt{background:var(--red);color:var(--white)}
+  /* Products & plans filter row */
+  .apl-flt{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 14px}
+  .apl-flt-g{display:flex;align-items:center;gap:7px}
+  .apl-flt-cap{font-size:10.5px;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:.4px}
+  .apl-flt .mod-select.act{border-color:var(--red);color:var(--red);font-weight:600}
+  .apl-flt-clear{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;font-size:11.5px;font-weight:600;font-family:inherit;color:var(--ink-3);background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer}
+  .apl-flt-clear:hover{background:var(--bg);color:var(--ink-2)}
+  .apl-flt-clear svg{width:12px;height:12px}
+  .apl-clickrow:hover{background:var(--bg)}
+  @media(max-width:768px){ .apl-flt{gap:9px} .apl-flt-g{flex:1 1 46%} .apl-flt .mod-select{width:100%} }
+  /* Mobile plan cards — hidden on desktop; the @768 block flips table/cards. */
+  .apl-cards{display:none}
+  .apl-card{background:var(--white);border:1px solid var(--border);border-radius:11px;padding:13px 14px;margin-bottom:10px}
+  .apl-card.clickable{cursor:pointer}
+  .apl-card.clickable:active{background:var(--bg)}
+  .apl-card.arch{opacity:0.6}
+  .apl-c-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .apl-c-name{font-weight:700;color:var(--ink);font-size:14px}
+  .apl-c-price{font-weight:700;color:var(--ink);font-size:15px;white-space:nowrap;text-align:right}
+  .apl-c-price .per{font-size:10px;color:var(--ink-4);font-weight:500}
+  .apl-c-pid{font-size:10px;color:var(--ink-4);margin-top:4px}
+  .apl-c-memo{font-size:11px;color:var(--ink-3);font-style:italic;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .apl-c-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .apl-c-sub{font-size:11px;color:var(--ink-4);margin-top:8px;line-height:1.5}
+  .apl-c-act{display:flex;gap:8px;margin-top:11px}
+  .apl-c-act .btn{flex:1;justify-content:center}
+  .apl-c-act-r{display:flex;justify-content:flex-end;margin-top:11px}
+  /* Archive is a destructive-ish action -> danger tokens (never --red). Light tint. */
+  .apl-c-archbtn{background:var(--danger-dim);color:var(--required);border:1px solid var(--danger-border)}
+  .apl-c-archbtn:hover{background:var(--required);color:#fff;border-color:var(--required)}
+  /* SA-1 "Show archived" ghost button (mobile header) with hover glow. */
+  .apl-archbtn{display:inline-flex;align-items:center;gap:7px;font-family:inherit;cursor:pointer;padding:8px 14px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);transition:all .15s;margin-top:10px}
+  .apl-archbtn:hover{border-color:var(--red);color:var(--red);box-shadow:0 2px 10px var(--red-dim)}
+  .apl-archbtn.on{border-color:var(--red);color:var(--red);background:var(--red-dim)}
+  .apl-archbtn svg{width:14px;height:14px;flex-shrink:0}
+  .apl-archbtn .apl-arch-cnt{padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;background:var(--bg-2);color:var(--ink-3)}
+  /* Mobile header button row (option 4): compact "archived" icon+count pill sits
+     beside the primary New Plan button, both right-aligned. */
+  .apl-hdr-m-row{display:flex;gap:9px;justify-content:flex-end;align-items:center;flex-shrink:0}
+  .apl-arch-icon{display:inline-flex;align-items:center;gap:6px;font-family:inherit;cursor:pointer;padding:8px 12px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);transition:all .15s}
+  .apl-arch-icon:hover{border-color:var(--red);color:var(--red);box-shadow:0 2px 10px var(--red-dim)}
+  .apl-arch-icon.on{border-color:var(--red);color:var(--red);background:var(--red-dim)}
+  .apl-arch-icon svg{width:15px;height:15px;flex-shrink:0}
+  .apl-arch-icon .apl-arch-cnt{padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;background:var(--bg-2);color:var(--ink-3)}
+  .apl-arch-icon.on .apl-arch-cnt{background:var(--red);color:var(--white)}
 
   .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--white)}
   .data-table{width:100%;border-collapse:collapse;font-size:13px}
@@ -2217,6 +2272,33 @@ function _sortPlans(arr) {
     return (ta - tb) * sign;
   });
 }
+// Products & plans list filters (client-side; each change re-runs loadPlans,
+// mirroring the Show-archived toggle). Empty string = "All" for each facet.
+// loc: '' = all locations, '__global' = only unassigned/global plans, else a
+// location_id (a plan matches if its locations CSV is empty (global, shows
+// everywhere) OR includes that id). vis: '' | 'signup' | 'products'.
+// cycle: '' | 'monthly' | 'yearly'.
+window._planFilters = window._planFilters || { loc:'', vis:'', cycle:'' };
+function _planSetLoc(v){ window._planFilters.loc = v; loadPlans(); }
+function _planSetVis(v){ window._planFilters.vis = v; loadPlans(); }
+function _planSetCycle(v){ window._planFilters.cycle = v; loadPlans(); }
+function _planClearFilters(){ window._planFilters = { loc:'', vis:'', cycle:'' }; loadPlans(); }
+function _planFiltersActive(){ var f=window._planFilters; return !!(f.loc||f.vis||f.cycle); }
+// A plan's locations CSV -> trimmed array of ids (empty array = global).
+function _planLocIds(p){ return String(p.locations||'').split(',').map(function(s){return s.trim();}).filter(Boolean); }
+function _planMatchesFilters(p){
+  var f=window._planFilters;
+  if(f.loc){
+    var ids=_planLocIds(p);
+    if(f.loc==='__global'){ if(ids.length) return false; }
+    else { if(ids.length && ids.indexOf(f.loc)===-1) return false; } // global (no ids) always matches a specific location
+  }
+  if(f.vis==='signup' && !p.show_on_signup) return false;
+  if(f.vis==='products' && !p.show_on_products) return false;
+  if(f.cycle && p.billing_cycle!==f.cycle) return false;
+  return true;
+}
+
 async function loadPlans(){
   var navGen = window._navGen;
   if(typeof _atlInjectCss==='function')_atlInjectCss();
@@ -2229,7 +2311,11 @@ async function loadPlans(){
   const archived=_sortPlans(all.filter(p=>p.archived));
   const showArch=!!window._showArchivedPlans;
   // Archived always grouped AFTER active, each group internally sorted.
-  const plans=showArch?[...active,...archived]:[...active];
+  const plansAll=showArch?[...active,...archived]:[...active];
+  // Client-side filter row (location / visibility / cycle). Stats below stay on
+  // the UNFILTERED active set — they're catalog totals, not filtered counts.
+  const fActive=_planFiltersActive();
+  const plans=fActive?plansAll.filter(_planMatchesFilters):plansAll;
   const total=active.length;
   const onSignup=active.filter(p=>p.show_on_signup).length;
   const hidden=total-onSignup;
@@ -2250,13 +2336,78 @@ async function loadPlans(){
     const sig=p.show_on_signup?`<span class="badge badge-green">signup</span>`:'';
     const prod=p.show_on_products?` <span class="badge badge-green">products</span>`:'';
     const status=ar?'<span class="badge">archived</span>':(sig||prod?(sig+prod):`<span class="badge">hidden</span>`);
-    const tag=p.plan_memo?`<div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;font-style:italic">${_esc(p.plan_memo)}</div>`:'';
+    const tag=p.plan_memo?`<div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;font-style:italic;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(p.plan_memo)}</div>`:'';
     const actions=ar?`<button class="btn btn-secondary btn-sm" onclick="togglePlanArchive('${p.product_id}',false)">Unarchive</button>`:`<button class="btn btn-secondary btn-sm" onclick="editPlan('${p.product_id}')">Edit</button> <button class="btn btn-secondary btn-sm" onclick="togglePlanArchive('${p.product_id}',true)">Archive</button>`;
-    return `<tr style="${dim}"><td><div style="font-weight:600">${_esc(p.plan_name)}${feat}${arBadge}</div><div style="font-size:10px;color:var(--ink-4);margin-top:3px">${p.stripe_product_id?_atlCopyChip(p.stripe_product_id,'Product ID'):'\u2014'}</div>${tag}</td><td><div style="font-size:14px">${price}</div>${setupBadge}</td><td style="font-size:12.5px;color:var(--ink-2)">${setupFee}</td><td style="font-size:12.5px;color:var(--ink-2)">${_esc(p.billing_cycle)}</td><td style="font-size:12px;color:var(--ink-2);line-height:1.6">${p.mail_limit} mail \u00b7 ${p.parcels_included||0} parcel${(p.parcels_included||0)===1?'':'s'}<br>${p.max_recipients||0} recip \u00b7 ${fl(p.auto_feature)}</td><td style="font-size:12px;color:var(--ink-2);white-space:nowrap">${fCreated(p.created_at)}</td><td>${status}</td><td style="text-align:right;white-space:nowrap">${actions}</td></tr>`;
+    // Non-archived rows are click-to-edit (buttons + copy-chip stopPropagation
+    // so they still act on their own). Archived rows aren't (their action is
+    // Unarchive, not Edit).
+    const rowAttr=ar?`style="${dim}"`:`style="${dim}cursor:pointer" class="apl-clickrow" data-edit="${_esc(p.product_id)}"`;
+    return `<tr ${rowAttr}><td><div style="font-weight:600">${_esc(p.plan_name)}${feat}${arBadge}</div><div style="font-size:10px;color:var(--ink-4);margin-top:3px">${p.stripe_product_id?_atlCopyChip(p.stripe_product_id,'Product ID'):'\u2014'}</div>${tag}</td><td><div style="font-size:14px">${price}</div>${setupBadge}</td><td style="font-size:12.5px;color:var(--ink-2)">${setupFee}</td><td style="font-size:12.5px;color:var(--ink-2)">${_esc(p.billing_cycle)}</td><td style="font-size:12px;color:var(--ink-2);line-height:1.6">${p.mail_limit} mail \u00b7 ${p.parcels_included||0} parcel${(p.parcels_included||0)===1?'':'s'}<br>${p.max_recipients||0} recip \u00b7 ${fl(p.auto_feature)}</td><td style="font-size:12px;color:var(--ink-2);white-space:nowrap">${fCreated(p.created_at)}</td><td>${status}</td><td style="text-align:right;white-space:nowrap">${actions}</td></tr>`;
+  };
+  // Mobile card (phone only). Same data as rowHtml; non-archived cards are
+  // tap-to-edit, archived cards show an Unarchive button instead.
+  const _per=p=>p.billing_cycle==='yearly'?'/yr':(p.billing_cycle==='monthly'?'/mo':'');
+  const cardHtml=p=>{
+    const ar=p.archived;
+    const feat=p.is_featured?`<span class="badge badge-blue">\u2605 featured</span>`:'';
+    const arBadge=ar?`<span class="badge">archived</span>`:'';
+    const priceRaw=p.price_display||(p.stripe_price_id?'\u2014':'not synced');
+    const priceHtml=p.price_display?`${_esc(p.price_display.replace(/\/(mo|yr|month|year).*$/i,''))}<span class="per">${_per(p)}</span>`:`<span style="font-size:12px;color:var(--ink-4)">${_esc(priceRaw)}</span>`;
+    const setupB=p.stripe_setup_price_id?`<span class="badge badge-amber">+ setup${p.setup_fee_display?' '+_esc(p.setup_fee_display):''}</span>`:'';
+    const sig=p.show_on_signup?`<span class="badge badge-green">signup</span>`:'';
+    const prod=p.show_on_products?`<span class="badge badge-green">products</span>`:'';
+    const vis=ar?`<span class="badge">archived</span>`:(sig||prod?(sig+prod):`<span class="badge">hidden</span>`);
+    const memo=p.plan_memo?`<div class="apl-c-memo">${_esc(p.plan_memo)}</div>`:'';
+    const pid=p.stripe_product_id?`<div class="apl-c-pid">${_atlCopyChip(p.stripe_product_id,'Product ID')}</div>`:'';
+    const locName=(function(){ var ids=_planLocIds(p); if(!ids.length) return 'Global'; return ids.map(id=>lm[id]||id).join(', '); })();
+    const sub=`<div class="apl-c-sub">${_esc(String(locName))} \u00b7 ${p.mail_limit} mail \u00b7 ${p.parcels_included||0} parcel${(p.parcels_included||0)===1?'':'s'} \u00b7 ${p.max_recipients||0} recip \u00b7 ${fl(p.auto_feature)} \u00b7 ${_esc(p.billing_cycle)} \u00b7 ${fCreated(p.created_at)}</div>`;
+    const act=ar
+      ?`<div class="apl-c-act"><button class="btn btn-secondary btn-sm" onclick="togglePlanArchive('${p.product_id}',false)">Unarchive</button></div>`
+      :`<div class="apl-c-act-r"><button class="btn btn-sm apl-c-archbtn" onclick="togglePlanArchive('${p.product_id}',true)">Archive</button></div>`;
+    const attr=ar?`class="apl-card arch"`:`class="apl-card clickable" data-edit="${_esc(p.product_id)}"`;
+    return `<div ${attr}><div class="apl-c-top"><div><div class="apl-c-name">${_esc(p.plan_name)} ${feat}${arBadge}</div>${memo}${pid}</div><div class="apl-c-price">${priceHtml}</div></div><div class="apl-c-meta">${setupB}${vis}</div>${sub}${act}</div>`;
   };
   const thSort='cursor:pointer;user-select:none;white-space:nowrap';
+  // ── Filter row (Location / Visibility / Cycle) ──────────────────────────
+  const _ff=window._planFilters;
+  const _selCls=v=>v?' act':'';
+  const _locOpts=[`<option value=""${_ff.loc===''?' selected':''}>All locations</option>`,
+    `<option value="__global"${_ff.loc==='__global'?' selected':''}>Global (unassigned)</option>`]
+    .concat((locs||[]).map(l=>`<option value="${_esc(l.location_id)}"${_ff.loc===l.location_id?' selected':''}>${_esc(l.name)}</option>`)).join('');
+  const _visOpts=[['','All plans'],['signup','On signup'],['products','On products page']]
+    .map(([v,lbl])=>`<option value="${v}"${_ff.vis===v?' selected':''}>${lbl}</option>`).join('');
+  const _cycOpts=[['','All cycles'],['monthly','Monthly'],['yearly','Yearly']]
+    .map(([v,lbl])=>`<option value="${v}"${_ff.cycle===v?' selected':''}>${lbl}</option>`).join('');
+  const filterRow=`<div class="apl-flt">`
+    +`<div class="apl-flt-g"><span class="apl-flt-cap">Location</span><select class="mod-select${_selCls(_ff.loc)}" onchange="_planSetLoc(this.value)">${_locOpts}</select></div>`
+    +`<div class="apl-flt-g"><span class="apl-flt-cap">Visibility</span><select class="mod-select${_selCls(_ff.vis)}" onchange="_planSetVis(this.value)">${_visOpts}</select></div>`
+    +`<div class="apl-flt-g"><span class="apl-flt-cap">Cycle</span><select class="mod-select${_selCls(_ff.cycle)}" onchange="_planSetCycle(this.value)">${_cycOpts}</select></div>`
+    +(fActive?`<button type="button" class="apl-flt-clear" onclick="_planClearFilters()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg> Clear</button>`:'')
+    +`</div>`;
+  // Empty state: no-match slate when filters hid everything; otherwise the
+  // "No plans yet" catalog-empty slate. When plansAll is empty the filter row
+  // is pointless, so only show it when there's a catalog to filter.
+  const noMatchSlate=_noMatchSlate('No matching plans','No plans match these filters \u2014 try a different combination or clear them.');
+  const emptyNoPlans=_blankSlate('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.55 4.24"></path><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>','No plans yet','Create a plan to offer mailbox subscriptions to your clients.');
+  const tableHtml=`<div class="table-wrap apl-desktop-table"><table class="data-table"><thead><tr><th>Plan</th><th style="${thSort}" onclick="setPlanSort('price')">Price${arrow('price')}</th><th>Setup fee</th><th>Cycle</th><th>Template</th><th style="${thSort}" onclick="setPlanSort('created')">Created${arrow('created')}</th><th>Visibility</th><th></th></tr></thead><tbody>${plans.map(rowHtml).join('')}</tbody></table></div>`;
+  const cardsHtml=`<div class="apl-cards">${plans.map(cardHtml).join('')}</div>`;
+  const listHtml=tableHtml+cardsHtml;   // CSS shows table on desktop, cards on phone
+  // Body: if there are no plans at all, show catalog-empty (no filter row).
+  // Otherwise show the filter row, then either the list or the no-match slate.
+  const body = (plansAll.length===0)
+    ? emptyNoPlans
+    : (filterRow + (plans.length ? listHtml : noMatchSlate));
   if (typeof navIsStale === 'function' && navIsStale(navGen)) return;
-  c.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><div><div class="section-title">Products &amp; plans</div><div style="font-size:12.5px;color:var(--ink-3);margin-top:2px">Creates the product and price \u00b7 admin only</div></div><div style="display:flex;align-items:center;gap:14px"><button type="button" class="apl-arch${showArch?' on':''}" onclick="window._showArchivedPlans=!window._showArchivedPlans;loadPlans()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> Show archived${archived.length?` <span class="apl-arch-cnt">${archived.length}</span>`:''}</button><button class="btn btn-primary" onclick="editPlan()">+ New Plan</button></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0"><div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px"><div style="font-size:12px;color:var(--ink-3)">Active plans</div><div style="font-size:22px;font-weight:700;margin-top:2px">${total}</div></div><div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px"><div style="font-size:12px;color:var(--ink-3)">On signup</div><div style="font-size:22px;font-weight:700;margin-top:2px">${onSignup}</div></div><div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px"><div style="font-size:12px;color:var(--ink-3)">Hidden</div><div style="font-size:22px;font-weight:700;margin-top:2px">${hidden}</div></div></div>`+(plans.length?`<div class="table-wrap"><table class="data-table"><thead><tr><th>Plan</th><th style="${thSort}" onclick="setPlanSort('price')">Price${arrow('price')}</th><th>Setup fee</th><th>Cycle</th><th>Template</th><th style="${thSort}" onclick="setPlanSort('created')">Created${arrow('created')}</th><th>Visibility</th><th></th></tr></thead><tbody>${plans.map(rowHtml).join('')}</tbody></table></div>`:_blankSlate('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4 7.55 4.24"></path><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>','No plans yet','Create a plan to offer mailbox subscriptions to your clients.'));
+  c.innerHTML=`<div class="apl-header-desktop" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><div><div class="section-title">Products &amp; plans</div><div style="font-size:12.5px;color:var(--ink-3);margin-top:2px">Creates the product and price \u00b7 admin only</div></div><div style="display:flex;align-items:center;gap:14px"><button type="button" class="apl-arch${showArch?' on':''}" onclick="window._showArchivedPlans=!window._showArchivedPlans;loadPlans()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> Show archived${archived.length?` <span class="apl-arch-cnt">${archived.length}</span>`:''}</button><button class="btn btn-primary" onclick="editPlan()">+ New Plan</button></div></div>`
+    +`<div class="apl-header-mobile" style="display:none;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px"><div style="min-width:0"><div class="section-title">Products &amp; plans</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:2px">Product &amp; price \u00b7 admin only</div></div><div class="apl-hdr-m-row"><button type="button" class="apl-arch-icon${showArch?' on':''}" title="${showArch?'Hide':'Show'} archived plans" onclick="window._showArchivedPlans=!window._showArchivedPlans;loadPlans()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>${archived.length?` <span class="apl-arch-cnt">${archived.length}</span>`:''}</button><button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="editPlan()">+ New Plan</button></div></div>`
+    +`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0"><div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px"><div style="font-size:12px;color:var(--ink-3)">Active plans</div><div style="font-size:22px;font-weight:700;margin-top:2px">${total}</div></div><div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px"><div style="font-size:12px;color:var(--ink-3)">On signup</div><div style="font-size:22px;font-weight:700;margin-top:2px">${onSignup}</div></div><div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px"><div style="font-size:12px;color:var(--ink-3)">Hidden</div><div style="font-size:22px;font-weight:700;margin-top:2px">${hidden}</div></div></div>`+body;
+  // Row/card click → edit that plan (buttons + copy-chip already stopPropagation).
+  c.querySelectorAll('.apl-clickrow[data-edit],.apl-card.clickable[data-edit]').forEach(function(el){
+    el.addEventListener('click',function(e){
+      if(e.target.closest('button,a,.atl-copy-chip')) return; // let controls act on their own
+      editPlan(el.getAttribute('data-edit'));
+    });
+  });
 }
 async function editPlan(id){
   let p={product_id:'',plan_name:'',billing_cycle:'monthly',max_recipients:3,mail_limit:10,mail_overage_fee:0,parcels_included:0,parcel_overage_fee:0,auto_feature:'none',mail_storage_days:30,parcel_storage_days:7,locations:'',plan_memo:'',declarations:[],features:[],stripe_product_id:'',stripe_price_id:'',stripe_setup_price_id:'',price_display:'',show_on_signup:true,show_on_products:true,is_featured:false,archived:false};
@@ -5278,6 +5429,11 @@ var _AB = {
   hasMore: false,
   appended: false,
   pagingBusy: false,
+  // Payment-flow guards: _modalOpen prevents stacking the card-picker /
+  // confirm modal on rapid or double-tap clicks (set at _abStartPayment entry,
+  // cleared on every close path); _payBusy locks the final charge submit.
+  _modalOpen: false,
+  _payBusy: false,
   // In-memory cache so re-clicking a tab / reopening a client paints instantly
   // from memory, then quietly refreshes in the background. Keyed by period
   // (rollup) and clientId (client); subs is a single slot. Mutations
@@ -5604,6 +5760,26 @@ function _abInjectCss(){
     + '.ab-cardradio{width:16px;height:16px;border:2px solid var(--ink-4);border-radius:50%;flex-shrink:0;position:relative}'
     + '.ab-cardopt.on .ab-cardradio{border-color:var(--red)}'
     + '.ab-cardopt.on .ab-cardradio:after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--red)}'
+    + '.ab-cpk-field{border:1.5px solid var(--border);border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:12px;cursor:pointer;background-color:var(--white);transition:border-color .12s}'
+    + '.ab-cpk-field:hover{border-color:var(--ink-4)}'
+    + '.ab-cpk-field.open{border-color:var(--red)}'
+    + '.ab-cpk-brand{font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-3);flex-shrink:0}'
+    + '.ab-cpk-num{font-weight:600;color:var(--ink);font-size:14px;letter-spacing:.3px}'
+    + '.ab-cpk-exp{font-size:11.5px;color:var(--ink-4);margin-left:auto}'
+    + '.ab-cpk-chev{color:var(--ink-4);flex-shrink:0;transition:transform .15s}'
+    + '.ab-cpk-field.open .ab-cpk-chev{transform:rotate(180deg)}'
+    + '.ab-cpk-menu{margin-top:6px;border:1px solid var(--border);border-radius:11px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.08)}'
+    + '.ab-cpk-scroll{max-height:210px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--ink-4) transparent;-webkit-overflow-scrolling:touch}'
+    + '.ab-cpk-scroll::-webkit-scrollbar{width:6px}'
+    + '.ab-cpk-scroll::-webkit-scrollbar-thumb{background-color:var(--ink-4);border-radius:8px}'
+    + '.ab-cpk-item{display:flex;align-items:center;gap:10px;padding:12px 15px;cursor:pointer;border-bottom:1px solid var(--border)}'
+    + '.ab-cpk-item:last-child{border-bottom:none}'
+    + '.ab-cpk-item:hover{background-color:var(--bg)}'
+    + '.ab-cpk-item.on{background-color:var(--red-dim)}'
+    + '.ab-cpk-item .nm{font-weight:600;color:var(--ink);font-size:13.5px;letter-spacing:.3px}'
+    + '.ab-cpk-item .rt{margin-left:auto;display:flex;align-items:center;gap:8px}'
+    + '.ab-cpk-item .ex{font-size:11px;color:var(--ink-4)}'
+    + '.ab-cpk-item .df{font-size:10px;font-weight:700;color:var(--red);letter-spacing:.3px}'
     + '@media(max-width:640px){.ab-kpis{grid-template-columns:repeat(2,1fr)}.ab-locname{width:96px}}';
   var el = document.createElement('style');
   el.id='ab-css'; el.textContent=css;
@@ -6344,11 +6520,19 @@ function _abRenderClient(){
 
 // ── Process payment: pick a card, then attempt payment on the invoice ───────
 async function _abStartPayment(clientId, invoiceId){
+  // Single-instance guard: set synchronously on the first click so rapid /
+  // double-tap clicks can't fire multiple card fetches or stack modals. The
+  // flag is cleared on every path that does NOT leave a modal on screen (load
+  // error, no card) and by the modal's own close handlers otherwise.
+  if(_AB._modalOpen) return;
+  if(document.getElementById('ab-paymodal')) return;
+  _AB._modalOpen = true;
   var res = await apiPost({ action:'getAdminBilling', mode:'cards', clientId:clientId });
-  if(!res || res.status!=='ok'){ toast('Could not load cards on file.', 'error'); return; }
+  if(!res || res.status!=='ok'){ _AB._modalOpen=false; toast('Could not load cards on file.', 'error'); return; }
   var cards = res.cards || [];
   if(cards.length===0){
     // No saved card — tell the admin rather than attempting a doomed charge.
+    _AB._modalOpen=false;
     toast('No card on file for this client. Ask them to add a payment method, or send them the invoice to pay.', 'error');
     return;
   }
@@ -6364,43 +6548,75 @@ function _abCardLabel(cd){
   var b=(cd.brand||'card'); b=b.charAt(0).toUpperCase()+b.slice(1);
   return b+' \u00B7\u00B7\u00B7\u00B7 '+cd.last4;
 }
+// Short brand tag for the dropdown (compact caps, e.g. "VISA", "MC", "AMEX").
+function _abCardBrandTag(cd){
+  var b=(cd.brand||'card').toLowerCase();
+  var map={visa:'Visa',mastercard:'MC',amex:'Amex',americanexpress:'Amex',discover:'Disc',diners:'Diners',jcb:'JCB',unionpay:'UnionPay'};
+  return map[b.replace(/\s+/g,'')] || (b.charAt(0).toUpperCase()+b.slice(1));
+}
+function _abCardExp(cd){
+  return cd.expMonth ? (String(cd.expMonth).padStart(2,'0')+'/'+String(cd.expYear).slice(-2)) : '';
+}
 
 function _abCardPickerModal(clientId, invoiceId, cards){
+  // Belt-and-suspenders: never build a second picker if one is already mounted.
+  if(document.getElementById('ab-paymodal')) return;
   var sel = cards.find(function(c){ return c.isDefault; }) || cards[0];
   var selId = sel.id;
+  var open = false;
   var ov = document.createElement('div');
   ov.className='ab-modal-ov'; ov.id='ab-paymodal';
-  function body(){
-    return cards.map(function(cd){
-      return '<div class="ab-cardopt '+(cd.id===selId?'on':'')+'" data-cardid="'+_esc(cd.id)+'">'
-        + '<span class="ab-cardradio"></span>'
-        + '<span class="b">'+_esc(_abCardLabel(cd))+'</span>'
-        + '<span class="m">'+(cd.isDefault?'Default':'')+(cd.expMonth?(' \u00B7 '+String(cd.expMonth).padStart(2,'0')+'/'+String(cd.expYear).slice(-2)):'')+'</span>'
-        + '</div>';
-    }).join('');
+  function selCard(){ return cards.find(function(c){ return c.id===selId; }) || cards[0]; }
+  function fieldHtml(){
+    var cd=selCard();
+    return '<div class="ab-cpk-field'+(open?' open':'')+'" id="ab-cpk-field">'
+      + '<span class="ab-cpk-brand">'+_esc(_abCardBrandTag(cd))+'</span>'
+      + '<span class="ab-cpk-num">\u00B7\u00B7\u00B7\u00B7 '+_esc(cd.last4)+'</span>'
+      + '<span class="ab-cpk-exp">'+_esc(_abCardExp(cd))+'</span>'
+      + '<svg class="ab-cpk-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'
+      + '</div>';
+  }
+  function menuHtml(){
+    if(!open) return '';
+    return '<div class="ab-cpk-menu"><div class="ab-cpk-scroll">'
+      + cards.map(function(cd){
+          return '<div class="ab-cpk-item'+(cd.id===selId?' on':'')+'" data-cardid="'+_esc(cd.id)+'">'
+            + '<span class="ab-cpk-brand">'+_esc(_abCardBrandTag(cd))+'</span>'
+            + '<span class="nm">\u00B7\u00B7\u00B7\u00B7 '+_esc(cd.last4)+'</span>'
+            + '<span class="rt">'+(cd.isDefault?'<span class="df">Default</span>':'')+'<span class="ex">'+_esc(_abCardExp(cd))+'</span></span>'
+            + '</div>';
+        }).join('')
+      + '</div></div>';
+  }
+  function paint(){ qs('ab-cpk-shell').innerHTML = fieldHtml()+menuHtml(); wire(); }
+  function wire(){
+    var fld=qs('ab-cpk-field');
+    if(fld) fld.onclick=function(e){ e.stopPropagation(); open=!open; paint(); };
+    ov.querySelectorAll('.ab-cpk-item').forEach(function(el){ el.onclick=function(e){
+      e.stopPropagation();
+      selId=el.getAttribute('data-cardid'); open=false; paint();
+    }; });
   }
   ov.innerHTML = '<div class="ab-modal">'
-    + '<div class="ab-modal-h">Choose a card to charge</div>'
-    + '<div class="ab-modal-b" id="ab-cardlist">'+body()+'</div>'
+    + '<div class="ab-modal-h">Charge a card</div>'
+    + '<div class="ab-modal-b"><div style="font-size:12.5px;color:var(--ink-3);margin-bottom:12px">Select which card on file to charge.</div>'
+    + '<div id="ab-cpk-shell">'+fieldHtml()+menuHtml()+'</div></div>'
     + '<div class="ab-modal-f"><button class="ab-btn" id="ab-paycancel">Cancel</button>'
     + '<button class="ab-btn ab-btn-pay-solid" id="ab-paygo">'+_AB_SVG.card+'Charge card</button></div>'
     + '</div>';
   document.body.appendChild(ov);
-  function rewire(){
-    ov.querySelectorAll('[data-cardid]').forEach(function(el){ el.onclick=function(){
-      selId=el.getAttribute('data-cardid');
-      ov.querySelectorAll('.ab-cardopt').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-cardid')===selId); });
-    }; });
-  }
-  rewire();
-  ov.onclick=function(e){ if(e.target===ov){ ov.remove(); } };
-  qs('ab-paycancel').onclick=function(){ ov.remove(); };
-  qs('ab-paygo').onclick=function(){ ov.remove(); _abDoPay(clientId, invoiceId, selId); };
+  wire();
+  function done(){ ov.remove(); _AB._modalOpen=false; }
+  // Clicking the modal body (outside the field) closes an open dropdown.
+  ov.querySelector('.ab-modal').onclick=function(){ if(open){ open=false; paint(); } };
+  ov.onclick=function(e){ if(e.target===ov){ done(); } };
+  qs('ab-paycancel').onclick=function(){ done(); };
+  qs('ab-paygo').onclick=function(){ done(); _abDoPay(clientId, invoiceId, selId); };
 }
 
 function _abConfirmPay(clientId, invoiceId, pmId, msg){
   var ov = document.createElement('div');
-  ov.className='ab-modal-ov';
+  ov.className='ab-modal-ov'; ov.id='ab-paymodal';
   ov.innerHTML = '<div class="ab-modal">'
     + '<div class="ab-modal-h">Process payment</div>'
     + '<div class="ab-modal-b"><div style="font-size:13px;color:var(--ink-2)">'+_esc(msg)+'</div></div>'
@@ -6408,9 +6624,10 @@ function _abConfirmPay(clientId, invoiceId, pmId, msg){
     + '<button class="ab-btn ab-btn-pay-solid" id="ab-pgo">'+_AB_SVG.card+'Charge now</button></div>'
     + '</div>';
   document.body.appendChild(ov);
-  ov.onclick=function(e){ if(e.target===ov){ ov.remove(); } };
-  qs('ab-pcancel').onclick=function(){ ov.remove(); };
-  qs('ab-pgo').onclick=function(){ ov.remove(); _abDoPay(clientId, invoiceId, pmId); };
+  function done(){ ov.remove(); _AB._modalOpen=false; }
+  ov.onclick=function(e){ if(e.target===ov){ done(); } };
+  qs('ab-pcancel').onclick=function(){ done(); };
+  qs('ab-pgo').onclick=function(){ done(); _abDoPay(clientId, invoiceId, pmId); };
 }
 
 async function _abDoPay(clientId, invoiceId, pmId){
