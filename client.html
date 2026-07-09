@@ -361,6 +361,7 @@
     text-align: center;
     color: var(--ink-3);
     background: var(--white);
+    border-radius: var(--radius);
   }
   .empty-icon { margin-bottom: 14px; display:flex; justify-content:center; }
   .empty-ring { width:60px; height:60px; border-radius:50%; border:1.5px dashed var(--border); display:flex; align-items:center; justify-content:center; color:var(--ink-4); }
@@ -397,13 +398,16 @@
   .cas-tab { flex:1; padding:8px; font-size:12px; font-weight:500; color:var(--ink-4); background:none; border:none; border-radius:8px; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:6px; transition:all .15s; }
   .cas-tab:hover { color:var(--ink-2); }
   .cas-tab-active { color:var(--ink); background:var(--bg-2); font-weight:600; }
-  .cas-phone-wrap { display:flex; align-items:stretch; border:1.5px solid var(--field-border, var(--border)); border-radius:11px; overflow:hidden; background:var(--field-bg, #fff); transition:border-color .15s, box-shadow .15s; }
+  .cas-phone-wrap { display:flex; align-items:stretch; border:1.5px solid var(--field-border, var(--border)); border-radius:12px; overflow:hidden; background-color:var(--field-bg, #fff); transition:border-color .15s, box-shadow .15s; }
   .cas-phone-wrap.focus { border-color:var(--red); box-shadow:0 0 0 3px color-mix(in srgb, var(--red) 14%, transparent); }
-  .cas-phone-cc { position:relative; display:flex; align-items:center; border-right:1px solid var(--field-border, var(--border)); background:var(--white, #fff); }
-  .cas-phone-cc select { -webkit-appearance:none; appearance:none; border:none; outline:none; background:transparent; font-family:inherit; font-size:13px; color:var(--ink-2); cursor:pointer; padding:0 24px 0 12px; height:100%; }
-  .cas-phone-cc .cas-chev { position:absolute; right:7px; pointer-events:none; color:var(--ink-4); display:flex; }
-  .cas-phone-wrap input { flex:1; min-width:0; border:none; outline:none; padding:11px 12px; font-size:14px; font-family:inherit; color:var(--ink); background:transparent; }
-  .cas-phone-wrap input::placeholder { color:var(--ink-4); }
+  .cas-phone-cc { position:relative; display:flex; align-items:center; background-color:transparent; }
+  .cas-phone-cc::after { content:""; position:absolute; right:0; top:9px; bottom:9px; width:1px; background-color:var(--field-border, var(--border)); }
+  .cas-phone-wrap select#cas-cc { width:auto; -webkit-appearance:none; appearance:none; border:none; border-radius:0; outline:none; background:transparent; box-shadow:none; font-family:inherit; font-size:14px; font-weight:500; color:var(--ink-2); cursor:pointer; padding:0 26px 0 14px; height:100%; transition:none; }
+  .cas-phone-wrap select#cas-cc:focus { border:none; box-shadow:none; }
+  .cas-phone-cc .cas-chev { position:absolute; right:9px; pointer-events:none; color:var(--ink-4); display:flex; }
+  .cas-phone-wrap input#cas-phone { flex:1; width:auto; min-width:0; border:none; border-radius:0; outline:none; box-shadow:none; padding:12px 14px; font-size:16px; font-family:inherit; color:var(--ink); background:transparent; transition:none; }
+  .cas-phone-wrap input#cas-phone:focus { border:none; box-shadow:none; }
+  .cas-phone-wrap input#cas-phone::placeholder { color:var(--ink-4); }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .form-row-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
   label {
@@ -749,6 +753,7 @@
   .cm-pill.active { color:var(--ink);font-weight:600; }
   .cm-pill:hover:not(.active) { color:var(--ink-2); }
   @media (prefers-reduced-motion: reduce) { .cm-thumb { transition:none; } }
+  .cm-filters { display:flex; align-items:center; gap:5px; }
   .cm-icon-btn { padding:5px 9px;border:1.5px solid var(--border);border-radius:8px;font-size:10px;font-weight:600;font-family:inherit;background:var(--bg);color:var(--ink-3);cursor:pointer;display:inline-flex;align-items:center;gap:3px;transition:all .15s;white-space:nowrap; }
   .cm-icon-btn:hover { border-color:var(--red);color:var(--red);background:var(--white); }
   @keyframes cmSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -881,20 +886,30 @@
     .sub-pill { padding: 4px 10px; font-size: 10px; }
     .plan-card-header { flex-wrap: wrap; gap: 8px; }
     .refresh-btn { font-size: 10px; padding: 4px 8px; }
-    /* Mail controls bar */
+    /* Mail controls bar — search on its own top row, filters on the row below */
+    .cm-controls { flex-wrap: wrap !important; gap: 4px !important; padding: 8px 10px !important; }
+    .cm-search { flex: 1 1 100% !important; order: 0 !important; margin-bottom: 8px !important; }
+    .cm-search input { font-size: 16px !important; padding-top: 6px !important; padding-bottom: 6px !important; }
+    .cm-filters { flex: 1 1 100% !important; order: 1 !important; display: flex !important; align-items: center !important; gap: 4px !important; flex-wrap: wrap !important; justify-content: space-between !important; }
     .cm-pill { padding: 3px 8px !important; font-size: 9px !important; }
-    #cm-status-pills, #cm-type-pills { padding: 2px !important; }
-    .mail-list > div:first-child { flex-wrap: wrap !important; gap: 4px !important; padding: 8px 10px !important; }
+    #cm-status-pills, #cm-type-pills { padding: 2px !important; flex: 1 1 auto !important; }
+    .cm-filters .cm-pill { flex: 1 1 auto !important; justify-content: center !important; align-items: center !important; min-height: 19px !important; }
     .cm-icon-btn { padding: 4px 6px !important; font-size: 9px !important; }
-    #client-mail-sort { width: 44px !important; font-size: 9px !important; }
+    .cm-filters .cm-icon-btn { flex: 0 0 auto !important; }
+    #client-mail-sort { width: 44px !important; font-size: 9px !important; flex: 0 0 auto !important; }
     /* Notification panel */
     #client-notif-panel { width: calc(100vw - 16px) !important; right: 8px !important; left: 8px !important; max-height: 70vh !important; }
     /* Plan card grids */
     .plan-card-grid { grid-template-columns: 1fr !important; }
     /* Modals */
     .app-modal-overlay > div { margin: 12px; max-width: calc(100vw - 24px) !important; max-height: 90vh; }
-    /* Mail items */
-    .mail-item { padding: 10px 12px !important; }
+    /* Mail items — status pill drops onto its own line under the info */
+    .mail-item { padding: 10px 12px !important; grid-template-columns: 4px 46px 1fr 26px !important; grid-template-rows: auto auto !important; }
+    .mail-item .mail-rail { grid-row: 1 / span 2; }
+    .mail-item .mail-icon-cell { grid-row: 1 / span 2; }
+    .mail-item .mail-info { grid-column: 3; grid-row: 1; }
+    .mail-item .mail-chev-cell { grid-column: 4; grid-row: 1 / span 2; align-self: center; }
+    .mail-item .mail-meta { grid-column: 3; grid-row: 2; flex-direction: row !important; align-items: flex-start !important; margin-top: 8px; padding-left: 13px; }
     .mail-actions { flex-wrap: wrap; gap: 4px; }
   }
   /* ── In-app modal ────────────────────────────────────── */
@@ -2075,7 +2090,7 @@ function openClientAccountSettings() {
         </span>
         <input id="cas-phone" type="tel" inputmode="tel" placeholder="(416) 555-0123" autocomplete="tel" maxlength="18">
       </div>
-      <div style="font-size:10.5px;color:var(--ink-4);margin-top:6px">Used for delivery notifications and account contact.</div>
+      <div style="font-size:10.5px;color:var(--ink-4);margin-top:6px">Used for daily communications.</div>
     </div>
 
     <div id="cas-panel-password" style="padding:16px 20px 8px;display:none">
@@ -4037,6 +4052,12 @@ async function switchSubscription(subscriptionId) {
   // Reset mail filters to defaults
   _cmStatus = 'active';
   _cmType = 'all';
+  // Reset to the Mail tab. The dashboard shell rebuilds with Mail hardcoded as the active
+  // tab + visible pane; _activeTab persists across a sub switch, so without this the tab
+  // highlight/thumb/refresh button would stay on the old tab (e.g. My Plan) while the
+  // content shows Mail - leaving the highlight and the visible page out of sync.
+  _activeTab = 'mail';
+  _activeTab_prev = 'mail';
   // Clear per-sub data but preserve allPlanCards so friendlyNames stay visible in switcher
   STATE.mailLog      = [];
   STATE.planCard     = null;
@@ -8055,14 +8076,15 @@ function buildMailLog(sub, access, mailLog, pc, agents, recipients) {
   }).join('');
 
   const controlsBar = `
-    <div style="padding:10px 14px;display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--border);background:var(--white)">
-      <div style="position:relative;flex:1;min-width:0">
+    <div class="cm-controls" style="padding:10px 14px;display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--border);background:var(--white)">
+      <div class="cm-search" style="position:relative;flex:1;min-width:0">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-4)" stroke-width="2" style="position:absolute;left:10px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="client-mail-search" placeholder="Search..."
           oninput="clientFilterMail()"
           style="width:100%;padding:7px 10px 7px 30px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s"
           onfocus="this.style.borderColor='var(--red)';this.style.background='var(--white)'" onblur="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
       </div>
+      <div class="cm-filters">
       <div id="cm-status-pills" class="cm-pill-group">
         <span class="cm-thumb"></span>
         <button class="cm-pill" data-val="all" onclick="setCmStatus('all',this)">All</button>
@@ -8084,15 +8106,25 @@ function buildMailLog(sub, access, mailLog, pc, agents, recipients) {
       <button onclick="_cmRefreshMail(this)" class="cm-icon-btn cm-refresh-btn" title="Refresh">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       </button>
+      </div>
     </div>`;
 
   area.innerHTML = `<div class="mail-list">${controlsBar}<div id="client-mail-rows">${rows}</div></div>`;
   // Store data for filtering FIRST
   window._clientMailData = mailLog;
   window._clientBuildContext = { autoFeature, isScanPlan, canRelease, blurred, agents, sub };
+  // Reconcile the freshly-rendered pills to the persisted filter state. The controls-bar
+  // markup hardcodes Ready/All as active, but _cmStatus/_cmType survive a refresh - without
+  // this sync the pills would show Ready/All while the list stays filtered by the old state.
+  (function(){
+    const sg = document.getElementById('cm-status-pills');
+    if (sg) sg.querySelectorAll('.cm-pill').forEach(b => b.classList.toggle('active', b.dataset.val === _cmStatus));
+    const tg = document.getElementById('cm-type-pills');
+    if (tg) tg.querySelectorAll('.cm-pill').forEach(b => b.classList.toggle('active', b.dataset.val === _cmType));
+  })();
   // Snap the filter-pill thumbs under their active pills (no glide on first paint).
   requestAnimationFrame(() => _positionCmThumbs(false));
-  // Now apply default filter (Ready)
+  // Now apply the active filter
   clientFilterMail();
 }
 
